@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ส่องพระ AI — เทียบพิมพ์ทรงและโทนสีผิว</title>
+<title>ส่องพระ AI — ส่อง เทียบพิมพ์ เทียบตำหนิ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Pridi:wght@400;600&family=Noto+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet">
@@ -49,7 +49,10 @@
   .btn:disabled{opacity:.45}
   .btn.secondary{background:transparent;border:1px solid #4A3A24;color:var(--muted);font-weight:500;font-size:.9rem;padding:12px}
   .btn.danger{background:transparent;border:1px solid #5A3327;color:var(--low);font-weight:500;font-size:.85rem;padding:10px}
+  .btn.small{width:auto;padding:8px 14px;font-size:.8rem;margin-top:0}
   .hint{font-size:.75rem;color:var(--muted);margin-top:10px;line-height:1.7}
+  .page{display:none;width:100%;max-width:430px;flex-direction:column;align-items:center}
+  .page.on{display:flex}
 
   /* ---- ฐานข้อมูล ---- */
   .dbcount{
@@ -60,7 +63,7 @@
   .dbcount span{font-size:.85rem;color:var(--muted)}
   #thumbs{
     display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:12px;
-    max-height:132px;overflow-y:auto;
+    max-height:132px;overflow-y:auto;width:100%;
   }
   #thumbs .th{position:relative;cursor:pointer}
   #thumbs img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
@@ -68,11 +71,11 @@
     position:absolute;left:2px;right:2px;bottom:2px;font-size:.52rem;text-align:center;
     background:rgba(21,16,7,.8);color:var(--gold);border-radius:6px;padding:1px 0;
   }
-  #fileInput{display:none}
+  .hiddenInput{display:none}
 
   /* ---- เกณฑ์ราคา ---- */
   .limitrow{
-    display:flex;align-items:center;gap:10px;margin-top:14px;
+    display:flex;align-items:center;gap:10px;margin-top:14px;width:100%;
     background:var(--surface2);border:1px solid #4A3A24;border-radius:12px;padding:10px 14px;
   }
   .limitrow label{font-size:.82rem;color:var(--text);flex-shrink:0}
@@ -85,7 +88,6 @@
   .limitrow span{font-size:.8rem;color:var(--muted)}
 
   /* ---- กล้อง ---- */
-  #app{display:none;width:100%;max-width:430px;flex-direction:column;align-items:center}
   .scope{
     position:relative;width:100%;aspect-ratio:1/1;
     border-radius:18px;overflow:hidden;background:#000;
@@ -97,7 +99,6 @@
   .c2{top:12px;right:12px;border-width:2px 2px 0 0;border-radius:0 6px 0 0}
   .c3{bottom:12px;left:12px;border-width:0 0 2px 2px;border-radius:0 0 0 6px}
   .c4{bottom:12px;right:12px;border-width:0 2px 2px 0;border-radius:0 0 6px 0}
-  /* ภาพเล็กมุมจอ: สิ่งที่ระบบ "เห็น" หลังตัดพื้นหลัง */
   #seen{
     position:absolute;right:10px;bottom:10px;width:74px;height:74px;
     border-radius:10px;border:1px solid var(--gold);opacity:.92;background:#222;
@@ -107,16 +108,13 @@
     background:rgba(21,16,7,.72);padding:2px 7px;border-radius:7px;
   }
 
-  /* ---- แถบซูม ---- */
   .zoomrow{
     display:flex;align-items:center;gap:12px;width:100%;
     background:var(--surface);border:1px solid var(--line);border-radius:14px;
     padding:10px 16px;margin-top:10px;
   }
   .zoomrow label{font-size:.8rem;color:var(--muted);flex-shrink:0}
-  .zoomrow input[type=range]{
-    flex:1;accent-color:var(--gold);height:26px;
-  }
+  .zoomrow input[type=range]{flex:1;accent-color:var(--gold);height:26px}
   .zoomrow b{font-size:.9rem;color:var(--gold);width:44px;text-align:right;flex-shrink:0}
 
   .verdict{
@@ -146,9 +144,74 @@
   .pricebar b{font-family:'Pridi',serif;font-size:1.25rem;font-weight:600}
   .pricebar small{display:block;font-size:.68rem;color:var(--muted);margin-top:2px}
 
+  /* ---- หน้าองค์ครู ---- */
+  #masterGrid{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%;margin-top:6px;
+  }
+  .mcard{
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    overflow:hidden;cursor:pointer;
+  }
+  .mcard img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:#111}
+  .mcard .mn{padding:8px 10px;font-size:.8rem;line-height:1.4}
+  .mcard .mn small{display:block;color:var(--muted);font-size:.65rem}
+
+  /* ---- หน้าเทียบ ---- */
+  .wshead{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;
+    margin-bottom:10px;
+  }
+  .wshead b{font-family:'Pridi',serif;font-size:1.05rem;color:var(--gold);font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tabs{display:flex;gap:6px;width:100%;margin-bottom:10px}
+  .tabs button{
+    flex:1;padding:10px 4px;border-radius:10px;border:1px solid var(--line);
+    background:var(--surface);color:var(--muted);font-family:'Noto Sans Thai',sans-serif;
+    font-size:.8rem;font-weight:500;cursor:pointer;
+  }
+  .tabs button.on{background:var(--gold);color:#1A1206;font-weight:700;border-color:var(--gold)}
+
+  .dual{display:flex;gap:8px;width:100%}
+  .dual .col{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+  .dual canvas{width:100%;aspect-ratio:1/1;border-radius:12px;border:1px solid var(--line);background:#111;touch-action:none;display:block}
+  .dual .cl{font-size:.65rem;color:var(--muted);text-align:center}
+  #ovWrap{width:100%;display:none}
+  #ovCanvas{width:100%;aspect-ratio:1/1;border-radius:12px;border:1px solid var(--line);background:#111;touch-action:none;display:block}
+
+  .ctlrow{
+    display:flex;align-items:center;gap:12px;width:100%;
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:10px 16px;margin-top:10px;
+  }
+  .ctlrow label{font-size:.78rem;color:var(--muted);flex-shrink:0}
+  .ctlrow input[type=range]{flex:1;accent-color:var(--gold);height:26px}
+  .ctlrow b{font-size:.85rem;color:var(--gold);width:44px;text-align:right;flex-shrink:0}
+
+  #pinPanel{width:100%;display:none;margin-top:10px}
+  .pinrow{
+    display:flex;align-items:center;gap:10px;background:var(--surface);
+    border:1px solid var(--line);border-radius:12px;padding:9px 12px;margin-top:8px;
+  }
+  .pinrow .no{
+    width:24px;height:24px;border-radius:50%;background:var(--gold);color:#1A1206;
+    font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .pinrow .lb{flex:1;min-width:0;font-size:.8rem;line-height:1.4}
+  .pinrow button{
+    padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:transparent;
+    color:var(--muted);font-family:'Noto Sans Thai',sans-serif;font-size:.72rem;cursor:pointer;flex-shrink:0;
+  }
+  .pinrow button.ok{border-color:var(--high);color:var(--high)}
+  .pinrow button.no2{border-color:var(--low);color:var(--low)}
+  .pinrow button.sel-ok{background:var(--high);color:#1A1206;font-weight:700}
+  .pinrow button.sel-no{background:var(--low);color:#1A1206;font-weight:700}
+  #pinSummary{margin-top:10px;font-size:.85rem;text-align:center;color:var(--muted)}
+
+  #suspectBar{width:100%;display:flex;gap:8px;margin-top:10px}
+  #suspectBar .btn{margin-top:0;font-size:.82rem;padding:11px}
+
   #status{font-size:.85rem;color:var(--muted);margin-top:14px;text-align:center;line-height:1.7;max-width:430px}
   .lighttip{
-    width:100%;max-width:430px;margin-top:10px;font-size:.72rem;color:var(--muted);
+    width:100%;margin-top:10px;font-size:.72rem;color:var(--muted);
     background:var(--surface);border:1px solid var(--line);border-radius:12px;
     padding:10px 14px;line-height:1.7;text-align:center;
   }
@@ -156,38 +219,40 @@
     width:100%;max-width:430px;margin-top:16px;font-size:.72rem;color:var(--muted);
     line-height:1.7;text-align:center;border-top:1px solid var(--line);padding-top:12px;
   }
-  #stopBtn{margin-top:14px}
 </style>
 </head>
 <body>
 
 <header>
   <h1>ส่องพระ AI</h1>
-  <p>เทียบพิมพ์ทรงและโทนสีผิว · ตัดพื้นหลังอัตโนมัติ</p>
+  <p>ส่องเทียบพิมพ์ · เทียบตำหนิกับองค์ครู</p>
 </header>
 
-<!-- หน้าจัดการฐานข้อมูล -->
-<div class="card" id="setup">
-  <div class="dbcount"><b id="count">0</b><span>รูปพระแท้ในฐานข้อมูล</span></div>
-  <div id="thumbs"></div>
-  <input type="file" id="fileInput" accept="image/*" multiple>
-  <button class="btn" id="addBtn">+ เพิ่มรูปพระแท้</button>
-  <button class="btn" id="goBtn" disabled>เริ่มส่องพระ</button>
-  <button class="btn secondary" id="backupBtn" style="display:none">⬇ สำรองฐานข้อมูลเป็นไฟล์</button>
-  <input type="file" id="restoreInput" accept=".json,application/json" style="display:none">
-  <button class="btn secondary" id="restoreBtn">⬆ กู้คืนจากไฟล์สำรอง</button>
-  <button class="btn danger" id="clearBtn" style="display:none">ล้างฐานข้อมูลทั้งหมด</button>
-  <div class="limitrow">
-    <label>เกณฑ์ราคา</label>
-    <input id="priceLimit" type="number" inputmode="numeric" min="0" placeholder="เช่น 10000">
-    <span>บาท</span>
+<!-- ============ หน้าหลัก / ฐานข้อมูล ============ -->
+<div class="page on" id="pgSetup">
+  <div class="card" style="width:100%">
+    <div class="dbcount"><b id="count">0</b><span>รูปพระแท้ในฐานข้อมูล</span></div>
+    <div id="thumbs"></div>
+    <input type="file" id="fileInput" class="hiddenInput" accept="image/*" multiple>
+    <button class="btn" id="addBtn">+ เพิ่มรูปพระแท้</button>
+    <button class="btn" id="goBtn" disabled>เริ่มส่องพระ</button>
+    <button class="btn" id="compareBtn">🔍 เทียบตำหนิ (องค์ครู)</button>
+    <button class="btn secondary" id="backupBtn" style="display:none">⬇ สำรองฐานข้อมูลเป็นไฟล์</button>
+    <input type="file" id="restoreInput" class="hiddenInput" accept=".json,application/json">
+    <button class="btn secondary" id="restoreBtn">⬆ กู้คืนจากไฟล์สำรอง</button>
+    <button class="btn danger" id="clearBtn" style="display:none">ล้างฐานข้อมูลทั้งหมด</button>
+    <div class="limitrow">
+      <label>เกณฑ์ราคา</label>
+      <input id="priceLimit" type="number" inputmode="numeric" min="0" placeholder="เช่น 10000">
+      <span>บาท</span>
+    </div>
+    <p class="hint">กด "เพิ่มรูปพระแท้" เลือกรูปได้ทีละหลายรูป (เลือกจาก Google Drive ได้) แอปถามราคาหนึ่งครั้งต่อชุด แตะรูปย่อเพื่อแก้ราคาทีละรูป<br><br>"เทียบตำหนิ" คือส่วนเก็บรูปองค์ครูความละเอียดเต็ม ไว้เทียบจุดตำหนิแบบละเอียดหลังจากส่องแล้ว % เข้าตา<br><br>ไฟล์สำรองรวมทั้งฐานข้อมูลส่องพระและองค์ครู — สำรองเก็บใน Google Drive เป็นระยะ</p>
   </div>
-  <p class="hint">กด "เพิ่มรูปพระแท้" แล้วเลือกรูปจากเครื่องได้ทีละหลายรูป (เลือกจาก Google Drive ได้ด้วย) แอปจะถามราคาหนึ่งครั้งต่อชุด และแตะรูปย่อด้านบนเพื่อแก้ราคาทีละรูปได้<br><br>เกณฑ์ราคา: ตอนส่อง ถ้าราคาของรูปที่จับคู่ได้ ไม่เกินเกณฑ์ = ตัวเลขสีเขียว, เกินเกณฑ์ = สีแดง<br><br>แนะนำ: กด "สำรองฐานข้อมูลเป็นไฟล์" เก็บไฟล์ไว้ใน Google Drive เป็นระยะ — ถ้าเปลี่ยนเครื่องหรือข้อมูลหาย กด "กู้คืนจากไฟล์สำรอง" ได้ทันทีโดยไม่ต้องเพิ่มรูปใหม่</p>
 </div>
 
-<!-- หน้ากล้อง -->
-<div id="app">
-  <div class="scope" id="scope">
+<!-- ============ หน้าส่องพระ ============ -->
+<div class="page" id="pgScan">
+  <div class="scope">
     <video id="cam" playsinline muted></video>
     <span class="corner c1"></span><span class="corner c2"></span>
     <span class="corner c3"></span><span class="corner c4"></span>
@@ -201,6 +266,8 @@
     <b id="zoomVal">1.0x</b>
   </div>
 
+  <button class="btn" id="capBtn">📸 เก็บภาพนี้ไว้เทียบตำหนิ</button>
+
   <div class="verdict">
     <div class="ring">
       <svg width="92" height="92" viewBox="0 0 92 92">
@@ -210,7 +277,6 @@
       </svg>
       <div class="num"><b id="shapePct">–</b><span>พิมพ์ทรง</span></div>
     </div>
-
     <div class="ring">
       <svg width="92" height="92" viewBox="0 0 92 92">
         <circle class="track" cx="46" cy="46" r="39"></circle>
@@ -219,7 +285,6 @@
       </svg>
       <div class="num"><b id="colorPct">–</b><span>โทนสีผิว</span></div>
     </div>
-
     <div class="match">
       <img id="matchImg" alt="">
       <span>รูปที่เหมือน<br>ที่สุด</span>
@@ -231,14 +296,87 @@
     <small id="priceSub"></small>
   </div>
 
-  <p class="lighttip">ระบบครอปเฉพาะองค์พระให้อัตโนมัติก่อนเทียบ ไม่ว่าจะถ่ายใกล้ไกลแค่ไหน — แถบซูมช่วยตอนองค์พระอยู่ไกลจนเล็กเกินไปในจอเท่านั้น ไม่จำเป็นต้องซูมให้พอดีเป๊ะ<br>การตัดพื้นหลังได้ผลดีกับพื้นหลังสีเรียบ (ผ้ากำมะหยี่ พื้นขาว โต๊ะสีเดียว) · คะแนนโทนสีผิวยังไวต่อแสง ควรส่องใต้แสงขาวสว่างสม่ำเสมอ</p>
+  <p class="lighttip">ระบบครอปเฉพาะองค์พระให้อัตโนมัติก่อนเทียบ — แถบซูมช่วยตอนองค์พระเล็กมากในจอเท่านั้น · % เข้าตาแล้วกด 📸 เพื่อเก็บภาพไปเทียบตำหนิกับองค์ครูต่อ</p>
 
-  <button class="btn secondary" id="stopBtn">หยุดกล้อง / กลับหน้าฐานข้อมูล</button>
+  <button class="btn secondary" id="stopBtn">หยุดกล้อง / กลับหน้าหลัก</button>
+</div>
+
+<!-- ============ หน้ารายการองค์ครู ============ -->
+<div class="page" id="pgMasters">
+  <div class="card" style="width:100%">
+    <div class="dbcount"><b id="mcount">0</b><span>องค์ครูในคลัง</span></div>
+    <div id="masterGrid"></div>
+    <input type="file" id="masterInput" class="hiddenInput" accept="image/*" multiple>
+    <button class="btn" id="addMasterBtn">+ เพิ่มองค์ครู (รูปคมชัด)</button>
+    <p class="hint">องค์ครู = รูปพระแท้ต้นฉบับความละเอียดเต็ม รุ่นละ 1-2 รูปที่ชัดที่สุด ใช้เทียบตำหนิแบบละเอียด · แตะองค์ครูเพื่อเข้าโหมดเทียบ</p>
+    <button class="btn secondary" id="mastersBackBtn">← กลับหน้าหลัก</button>
+  </div>
+</div>
+
+<!-- ============ หน้าเทียบตำหนิ ============ -->
+<div class="page" id="pgCompare">
+  <div class="wshead">
+    <b id="wsName">องค์ครู</b>
+    <button class="btn small secondary" id="renameMasterBtn">ชื่อ</button>
+    <button class="btn small danger" id="delMasterBtn">ลบ</button>
+  </div>
+
+  <div class="pricebar" id="wsMatchBar" style="display:none;margin:0 0 10px">
+    <b id="wsMatchPct">–</b>
+    <small id="wsMatchSub"></small>
+  </div>
+
+  <div class="tabs">
+    <button id="tabDual" class="on">เทียบคู่</button>
+    <button id="tabOverlay">ภาพซ้อน</button>
+    <button id="tabPins">หมุดตำหนิ</button>
+  </div>
+
+  <div class="dual" id="dualWrap">
+    <div class="col">
+      <canvas id="cvMaster" width="600" height="600"></canvas>
+      <span class="cl">องค์ครู (ต้นฉบับ)</span>
+    </div>
+    <div class="col">
+      <canvas id="cvSuspect" width="600" height="600"></canvas>
+      <span class="cl">องค์ที่ตรวจสอบ</span>
+    </div>
+  </div>
+
+  <div id="ovWrap">
+    <canvas id="ovCanvas" width="800" height="800"></canvas>
+    <div class="ctlrow">
+      <label>ความเข้มองค์ครู</label>
+      <input type="range" id="opSlider" min="0" max="100" value="50">
+      <b id="opVal">50%</b>
+    </div>
+  </div>
+
+  <div class="ctlrow">
+    <label>ซูม</label>
+    <input type="range" id="wsZoom" min="1" max="6" step="0.1" value="1">
+    <b id="wsZoomVal">1.0x</b>
+  </div>
+  <p class="hint" style="text-align:center;margin-top:6px">ลากนิ้วบนภาพเพื่อเลื่อนดู — สองภาพเลื่อน/ซูมพร้อมกันเสมอ</p>
+
+  <div id="suspectBar">
+    <button class="btn secondary" id="useCapBtn" style="display:none">ใช้ภาพที่ถ่ายไว้</button>
+    <input type="file" id="suspectInput" class="hiddenInput" accept="image/*">
+    <button class="btn secondary" id="pickSuspectBtn">เลือกรูปองค์ที่ตรวจสอบ</button>
+  </div>
+
+  <div id="pinPanel">
+    <button class="btn secondary" id="addPinBtn">➕ เพิ่มหมุดตำหนิ (กดแล้วแตะจุดบนรูปองค์ครู)</button>
+    <div id="pinList"></div>
+    <div id="pinSummary"></div>
+  </div>
+
+  <button class="btn secondary" id="wsBackBtn" style="margin-top:14px">← กลับรายการองค์ครู</button>
 </div>
 
 <p id="status"></p>
 
-<p class="warn">ตัวเลขคือความเหมือนของ "ภาพ" กับฐานข้อมูลเท่านั้น พระเก๊ที่ถอดพิมพ์เหมือนอาจได้คะแนนสูงได้<br>ระบบไม่สามารถยืนยันความเก่าถึงยุคได้ — ใช้คัดกรองเบื้องต้น ควรให้ผู้ชำนาญตรวจสอบก่อนเช่าบูชาทุกครั้ง</p>
+<p class="warn">ตัวเลขและการเทียบเป็นการเปรียบภาพกับฐานข้อมูลเท่านั้น พระเก๊ถอดพิมพ์เหมือนอาจได้คะแนนสูงได้<br>ระบบไม่สามารถยืนยันความเก่าถึงยุคได้ — ใช้คัดกรองเบื้องต้น ควรให้ผู้ชำนาญตรวจสอบก่อนเช่าบูชาทุกครั้ง</p>
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js"></script>
@@ -246,29 +384,36 @@
 const $ = id => document.getElementById(id);
 const CIRC = 245;
 const DB_KEY = 'phraRefDB_v1';
-const PROC_VER = 3;        // เวอร์ชันวิธีประมวลผลภาพ (ตัดพื้นหลัง + ครอปอัตโนมัติ)
+const LIMIT_KEY = 'phraPriceLimit';
+const PROC_VER = 3;
 let net = null;
-let db = [];               // [{v, h, img, p}]
+let db = [];
+let masters = [];
 let stream = null, running = false;
+let zoom = 1;
+let sessionSuspect = null;      // ภาพที่ถ่ายเก็บไว้จากหน้าส่อง (canvas)
+let sessionSuspectVec = null;   // เวกเตอร์พิมพ์ทรงของภาพที่ถ่ายเก็บไว้
+let suspectVec = null;          // เวกเตอร์ขององค์ที่กำลังตรวจสอบใน workspace
+let masterScores = {};          // id องค์ครู -> % ตรงกับองค์ที่ตรวจสอบ
 const W = 224;
 const work = document.createElement('canvas'); work.width = W; work.height = W;
 const wctx = work.getContext('2d', { willReadFrequently: true });
 
+/* ============ สลับหน้า ============ */
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  $(id).classList.add('on');
+}
+
 /* ============================================================
-   ตัดพื้นหลังอัตโนมัติ
-   หลักการ: ดูสีเฉลี่ยตามขอบภาพ (ปกติคือพื้นหลัง) แล้วไล่ลบ
-   พื้นที่สีใกล้เคียงที่ "ลามต่อเนื่องจากขอบ" เข้ามา
-   แทนที่ด้วยสีเทากลาง เหลือแต่องค์พระตรงกลาง
-   คืนค่า mask (1 = พื้นหลัง) หรือ null ถ้าตัดไม่ได้
+   ตัดพื้นหลัง (จากขอบภาพ) — paint=true จะทาพื้นหลังเป็นเทาลงบน work
    ============================================================ */
-function removeBackground(){
+function removeBackground(paint){
   const imgData = wctx.getImageData(0, 0, W, W);
   const d = imgData.data;
-  const TOL = 42;                       // ความต่างสีที่ยังถือว่าเป็นพื้นหลังเดียวกัน
+  const TOL = 42;
   const mask = new Uint8Array(W*W);
   const queue = [];
-
-  // สีเฉลี่ยของขอบภาพ 4 ด้าน (แยกด้านละสี รองรับพื้นหลังไล่เฉดเล็กน้อย)
   function edgeAvg(pixels){
     let r=0,g=0,b=0;
     for (const p of pixels){ r+=d[p*4]; g+=d[p*4+1]; b+=d[p*4+2]; }
@@ -280,7 +425,6 @@ function removeBackground(){
     top.push(i); bot.push((W-1)*W+i); lef.push(i*W); rig.push(i*W+W-1);
   }
   const refs = [edgeAvg(top), edgeAvg(bot), edgeAvg(lef), edgeAvg(rig)];
-
   function isBg(p){
     const r=d[p*4], g=d[p*4+1], b=d[p*4+2];
     for (const c of refs){
@@ -288,12 +432,9 @@ function removeBackground(){
     }
     return false;
   }
-
-  // เริ่มไล่จากพิกเซลขอบทุกตัวที่สีเข้าข่ายพื้นหลัง
   for (const p of [...top,...bot,...lef,...rig]){
     if (!mask[p] && isBg(p)){ mask[p]=1; queue.push(p); }
   }
-  // ลามเข้าด้านใน (flood fill)
   while (queue.length){
     const p = queue.pop();
     const x = p % W, y = (p-x)/W;
@@ -306,30 +447,20 @@ function removeBackground(){
       if (!mask[q] && isBg(q)){ mask[q]=1; queue.push(q); }
     }
   }
-
-  // นับสัดส่วนพื้นหลังที่ตัดได้
   let cnt = 0;
   for (let i=0;i<mask.length;i++) cnt += mask[i];
   const frac = cnt / mask.length;
-  // ถ้าตัดได้น้อยมาก (พื้นหลังลายเยอะ) หรือตัดเกือบหมดภาพ (สีองค์พระกลืนกับพื้น)
-  // ให้ยกเลิก ใช้ภาพเต็มตามเดิม ปลอดภัยกว่า
   if (frac < 0.08 || frac > 0.90) return null;
-
-  // แทนพื้นหลังด้วยสีเทากลาง
-  for (let i=0;i<mask.length;i++){
-    if (mask[i]){
-      d[i*4]=120; d[i*4+1]=118; d[i*4+2]=112;
+  if (paint){
+    for (let i=0;i<mask.length;i++){
+      if (mask[i]){ d[i*4]=120; d[i*4+1]=118; d[i*4+2]=112; }
     }
+    wctx.putImageData(imgData, 0, 0);
   }
-  wctx.putImageData(imgData, 0, 0);
   return mask;
 }
 
-/* ============================================================
-   หากรอบสี่เหลี่ยมที่พอดีกับ "องค์พระ" จาก mask ตัดพื้นหลัง
-   (mask ค่า 1 = พื้นหลัง, 0 = องค์พระ) เผื่อขอบไว้เล็กน้อย
-   คืนค่า {x,y,w,h} เป็นพิกัดในกรอบ WxW หรือ null ถ้าหาไม่ได้
-   ============================================================ */
+/* หากรอบพอดีองค์พระจาก mask (1=พื้นหลัง) */
 function getBBox(mask){
   let minX=W, minY=W, maxX=-1, maxY=-1;
   for (let y=0; y<W; y++){
@@ -343,141 +474,15 @@ function getBBox(mask){
   }
   if (maxX < 0) return null;
   const w = maxX-minX+1, h = maxY-minY+1;
-  // กันกรอบที่เล็กผิดปกติ (มักเกิดจากตรวจจับขอบผิดพลาดตอนซูมเข้ามากๆ หรือแสงไม่นิ่ง)
   if (w < W*0.15 || h < W*0.15) return null;
-  const mx = w*0.12, my = h*0.12;         // เผื่อขอบ 12% กันตัดองค์พระขาด
+  const mx = w*0.12, my = h*0.12;
   const x0 = Math.max(0, minX-mx), y0 = Math.max(0, minY-my);
   const x1 = Math.min(W, maxX+1+mx), y1 = Math.min(W, maxY+1+my);
-  if (x1-x0 < 2 || y1-y0 < 2) return null;   // กันขนาดศูนย์/ติดลบหลุดไปคำนวณต่อ
+  if (x1-x0 < 2 || y1-y0 < 2) return null;
   return { x:x0, y:y0, w:x1-x0, h:y1-y0 };
 }
 
-/* ============================================================
-   วิเคราะห์รูปภาพ (จากไฟล์รูป): วาดเต็มเฟรมก่อน หาองค์พระ
-   แล้วครอปเฉพาะองค์พระมาขยายเต็มภาพอีกรอบก่อนคำนวณจริง
-   เพื่อให้ไม่ว่ารูปต้นฉบับจะซูมใกล้/ไกลแค่ไหน ผลลัพธ์เทียบกันได้
-   ============================================================ */
-async function analyzeImageSource(img){
-  wctx.drawImage(img, 0, 0, W, W);
-  let mask = removeBackground();
-  if (mask){
-    const box = getBBox(mask);
-    if (box && box.w*box.h < 0.85*W*W){
-      const sx = box.x/W*img.width, sy = box.y/W*img.height;
-      const sw = box.w/W*img.width, sh = box.h/W*img.height;
-      wctx.clearRect(0, 0, W, W);
-      wctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, W);
-      mask = removeBackground();
-    }
-  }
-  const v = await embed(work);
-  const h = colorHist(mask);
-  return { v, h };
-}
-
-/* วิเคราะห์เฟรมจากกล้องสด ด้วยหลักการเดียวกัน */
-async function analyzeVideoFrame(video, baseX, baseY, s){
-  wctx.drawImage(video, baseX, baseY, s, s, 0, 0, W, W);
-  let mask = removeBackground();
-  if (mask){
-    const box = getBBox(mask);
-    if (box && box.w*box.h < 0.85*W*W){
-      const sx = baseX + box.x/W*s, sy = baseY + box.y/W*s;
-      const sw = box.w/W*s, sh = box.h/W*s;
-      wctx.clearRect(0, 0, W, W);
-      wctx.drawImage(video, sx, sy, sw, sh, 0, 0, W, W);
-      mask = removeBackground();
-    }
-  }
-  $('seen').getContext('2d').drawImage(work, 0, 0);
-  const q = await embed(work);
-  const qh = colorHist(mask);
-  return { q, qh };
-}
-
-/* ---------- ฐานข้อมูล ---------- */
-async function loadDB(){
-  try { db = JSON.parse(localStorage.getItem(DB_KEY)) || []; } catch(e){ db = []; }
-  renderDB();
-  // อัปเกรดรูปเก่าให้ผ่านการตัดพื้นหลัง+ครอปอัตโนมัติแบบเดียวกับระบบใหม่
-  const needs = db.filter(r => r.p !== PROC_VER);
-  if (needs.length){
-    await ensureNet();
-    let done = 0;
-    for (const r of needs){
-      try {
-        const img = await srcToImage(r.img);
-        const { v, h } = await analyzeImageSource(img);
-        r.v = v; r.h = h;
-        r.p = PROC_VER;
-      } catch(e){}
-      done++;
-      $('status').textContent = `กำลังอัปเดตฐานข้อมูล ${done}/${needs.length}…`;
-    }
-    saveDB();
-    $('status').textContent = 'อัปเดตฐานข้อมูลเรียบร้อย (แนะนำ: ถ้ามีรูปต้นฉบับ ลองล้างแล้วเพิ่มใหม่จะคมชัดที่สุด)';
-  }
-}
-function saveDB(){
-  try { localStorage.setItem(DB_KEY, JSON.stringify(db)); return true; }
-  catch(e){
-    $('status').textContent = 'พื้นที่เก็บข้อมูลในเครื่องเต็ม — รูปชุดล่าสุดจะใช้ได้เฉพาะรอบนี้ ลองลดจำนวนรูปลง';
-    return false;
-  }
-}
-function renderDB(){
-  $('count').textContent = db.length;
-  $('goBtn').disabled = db.length === 0;
-  $('clearBtn').style.display = db.length ? 'block' : 'none';
-  $('backupBtn').style.display = db.length ? 'block' : 'none';
-  const t = $('thumbs'); t.innerHTML = '';
-  db.slice(-30).reverse().forEach(r => {
-    const box = document.createElement('div');
-    box.className = 'th';
-    const im = new Image(); im.src = r.img;
-    box.appendChild(im);
-    const pb = document.createElement('span');
-    pb.className = 'pb';
-    pb.textContent = (typeof r.price === 'number') ? r.price.toLocaleString('th-TH') + '฿' : 'ไม่มีราคา';
-    box.appendChild(pb);
-    // แตะรูปเพื่อใส่/แก้ราคา
-    box.addEventListener('click', () => {
-      const cur = (typeof r.price === 'number') ? r.price : '';
-      const ans = prompt('ราคา (บาท) ของรูปนี้ — ใส่ตัวเลขอย่างเดียว, เว้นว่างแล้วกดตกลง = ลบราคา', cur);
-      if (ans === null) return;                     // กดยกเลิก
-      const num = parseFloat(String(ans).replace(/[, ]/g,''));
-      if (ans.trim() === ''){ delete r.price; }
-      else if (isFinite(num) && num >= 0){ r.price = num; }
-      else { $('status').textContent = 'ราคาต้องเป็นตัวเลขเท่านั้น'; return; }
-      saveDB(); renderDB();
-    });
-    t.appendChild(box);
-  });
-}
-
-/* ---------- เกณฑ์ราคา ---------- */
-const LIMIT_KEY = 'phraPriceLimit';
-try {
-  const savedLimit = localStorage.getItem(LIMIT_KEY);
-  if (savedLimit) $('priceLimit').value = savedLimit;
-} catch(e){}
-$('priceLimit').addEventListener('change', () => {
-  try { localStorage.setItem(LIMIT_KEY, $('priceLimit').value); } catch(e){}
-});
-function getLimit(){
-  const v = parseFloat($('priceLimit').value);
-  return (isFinite(v) && v > 0) ? v : null;
-}
-
-/* ---------- โหลดโมเดล ---------- */
-async function ensureNet(){
-  if (net) return;
-  $('status').textContent = 'กำลังโหลดระบบวิเคราะห์ภาพ (ครั้งแรกอาจใช้เวลาสักครู่)…';
-  net = await mobilenet.load({version: 2, alpha: 1.0});
-  $('status').textContent = '';
-}
-
-/* ---------- เวกเตอร์พิมพ์ทรง ---------- */
+/* ============ วิเคราะห์เพื่อคะแนน (ใช้ mask+crop เหมือนเดิม) ============ */
 async function embed(source){
   const t = tf.tidy(() => {
     const e = net.infer(source, true);
@@ -492,12 +497,9 @@ function cosine(a, b){
   for (let i = 0; i < a.length; i++) s += a[i]*b[i];
   return s;
 }
-function shapeToPct(c){
-  return Math.max(0, Math.min(100, Math.round((c - 0.5) / 0.5 * 100)));
-}
+function shapeToPct(c){ return Math.max(0, Math.min(100, Math.round((c - 0.5) / 0.5 * 100))); }
+function colorToPct(c){ return Math.max(0, Math.min(100, Math.round(c * 100))); }
 
-/* ---------- ฮิสโตแกรมสี (โทนสีผิว) ----------
-   นับการกระจายสีเฉพาะพิกเซลที่ "ไม่ใช่พื้นหลัง" */
 function colorHist(mask){
   const M = 16;
   const dImg = wctx.getImageData(0, 0, W, W);
@@ -507,7 +509,7 @@ function colorHist(mask){
   for (let y = M; y < W-M; y += 2){
     for (let x = M; x < W-M; x += 2){
       const p = y*W + x;
-      if (mask && mask[p]) continue;               // ข้ามพื้นหลัง
+      if (mask && mask[p]) continue;
       const i = p*4;
       const r = d[i]/255, g = d[i+1]/255, b = d[i+2]/255;
       const mx = Math.max(r,g,b), mn = Math.min(r,g,b), df = mx-mn;
@@ -531,16 +533,245 @@ function histSim(a, b){
   for (let i = 0; i < a.length; i++) s += Math.min(a[i], b[i]);
   return s;
 }
-function colorToPct(c){
-  return Math.max(0, Math.min(100, Math.round(c * 100)));
+
+async function analyzeImageSource(img){
+  wctx.drawImage(img, 0, 0, W, W);
+  let mask = removeBackground(true);
+  if (mask){
+    const box = getBBox(mask);
+    if (box && box.w*box.h < 0.85*W*W){
+      const sx = box.x/W*img.width, sy = box.y/W*img.height;
+      const sw = box.w/W*img.width, sh = box.h/W*img.height;
+      wctx.clearRect(0, 0, W, W);
+      wctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, W);
+      mask = removeBackground(true);
+    }
+  }
+  const v = await embed(work);
+  const h = colorHist(mask);
+  return { v, h };
 }
 
-/* ---------- เพิ่มรูปพระแท้ ---------- */
+async function analyzeVideoFrame(video, baseX, baseY, s){
+  wctx.drawImage(video, baseX, baseY, s, s, 0, 0, W, W);
+  let mask = removeBackground(true);
+  if (mask){
+    const box = getBBox(mask);
+    if (box && box.w*box.h < 0.85*W*W){
+      const sx = baseX + box.x/W*s, sy = baseY + box.y/W*s;
+      const sw = box.w/W*s, sh = box.h/W*s;
+      wctx.clearRect(0, 0, W, W);
+      wctx.drawImage(video, sx, sy, sw, sh, 0, 0, W, W);
+      mask = removeBackground(true);
+    }
+  }
+  $('seen').getContext('2d').drawImage(work, 0, 0);
+  const q = await embed(work);
+  const qh = colorHist(mask);
+  return { q, qh };
+}
+
+/* ============ ครอปเพื่อการ "เทียบด้วยตา" (คงสีจริง ไม่ทาเทา) ============
+   รับ source (img/canvas/video-region ที่วาดเป็น canvas แล้ว) คืน canvas ครอปพอดีองค์ */
+function cropForCompare(source){
+  const sw0 = source.width || source.videoWidth;
+  const sh0 = source.height || source.videoHeight;
+  wctx.drawImage(source, 0, 0, W, W);
+  const mask = removeBackground(false);
+  let sx = 0, sy = 0, sw = sw0, sh = sh0;
+  if (mask){
+    const box = getBBox(mask);
+    if (box && box.w*box.h < 0.9*W*W){
+      sx = box.x/W*sw0; sy = box.y/W*sh0;
+      sw = box.w/W*sw0; sh = box.h/W*sh0;
+    }
+  }
+  const side = Math.max(sw, sh);
+  const out = document.createElement('canvas');
+  const S = Math.min(1024, Math.max(400, Math.round(side)));
+  out.width = S; out.height = S;
+  const octx = out.getContext('2d');
+  octx.fillStyle = '#1A1206'; octx.fillRect(0, 0, S, S);
+  // วางกึ่งกลางแบบรักษาสัดส่วน
+  const scale = S / side;
+  const dw = sw*scale, dh = sh*scale;
+  octx.drawImage(source, sx, sy, sw, sh, (S-dw)/2, (S-dh)/2, dw, dh);
+  return out;
+}
+
+/* ============ ฐานข้อมูลส่องพระ (localStorage) ============ */
+async function loadDB(){
+  try { db = JSON.parse(localStorage.getItem(DB_KEY)) || []; } catch(e){ db = []; }
+  renderDB();
+  const needs = db.filter(r => r.p !== PROC_VER);
+  if (needs.length){
+    await ensureNet();
+    let done = 0;
+    for (const r of needs){
+      try {
+        const img = await srcToImage(r.img);
+        const { v, h } = await analyzeImageSource(img);
+        r.v = v; r.h = h; r.p = PROC_VER;
+      } catch(e){}
+      done++;
+      $('status').textContent = `กำลังอัปเดตฐานข้อมูล ${done}/${needs.length}…`;
+    }
+    saveDB();
+    $('status').textContent = 'อัปเดตฐานข้อมูลเรียบร้อย';
+  }
+}
+function saveDB(){
+  try { localStorage.setItem(DB_KEY, JSON.stringify(db)); return true; }
+  catch(e){
+    $('status').textContent = 'พื้นที่เก็บข้อมูลเต็ม — รูปชุดล่าสุดจะใช้ได้เฉพาะรอบนี้';
+    return false;
+  }
+}
+function renderDB(){
+  $('count').textContent = db.length;
+  $('goBtn').disabled = db.length === 0;
+  $('clearBtn').style.display = db.length ? 'block' : 'none';
+  $('backupBtn').style.display = (db.length || masters.length) ? 'block' : 'none';
+  const t = $('thumbs'); t.innerHTML = '';
+  db.slice(-30).reverse().forEach(r => {
+    const box = document.createElement('div');
+    box.className = 'th';
+    const im = new Image(); im.src = r.img;
+    box.appendChild(im);
+    const pb = document.createElement('span');
+    pb.className = 'pb';
+    pb.textContent = (typeof r.price === 'number') ? r.price.toLocaleString('th-TH') + '฿' : 'ไม่มีราคา';
+    box.appendChild(pb);
+    box.addEventListener('click', () => {
+      const cur = (typeof r.price === 'number') ? r.price : '';
+      const ans = prompt('ราคา (บาท) ของรูปนี้ — เว้นว่างแล้วกดตกลง = ลบราคา', cur);
+      if (ans === null) return;
+      const num = parseFloat(String(ans).replace(/[, ]/g,''));
+      if (ans.trim() === ''){ delete r.price; }
+      else if (isFinite(num) && num >= 0){ r.price = num; }
+      else { $('status').textContent = 'ราคาต้องเป็นตัวเลขเท่านั้น'; return; }
+      saveDB(); renderDB();
+    });
+    t.appendChild(box);
+  });
+}
+
+/* ============ คลังองค์ครู (IndexedDB — จุรูปความละเอียดเต็มได้) ============ */
+let idb = null;
+function openIDB(){
+  return new Promise((res) => {
+    try {
+      const r = indexedDB.open('songphra', 1);
+      r.onupgradeneeded = e => e.target.result.createObjectStore('masters', { keyPath: 'id' });
+      r.onsuccess = e => { idb = e.target.result; res(); };
+      r.onerror = () => { idb = null; res(); };
+    } catch(e){ idb = null; res(); }
+  });
+}
+function idbAll(){
+  return new Promise((res) => {
+    if (!idb) return res([]);
+    try {
+      const tx = idb.transaction('masters', 'readonly').objectStore('masters').getAll();
+      tx.onsuccess = () => res(tx.result || []);
+      tx.onerror = () => res([]);
+    } catch(e){ res([]); }
+  });
+}
+function idbPut(m){
+  return new Promise((res) => {
+    if (!idb) return res(false);
+    try {
+      const tx = idb.transaction('masters', 'readwrite').objectStore('masters').put(m);
+      tx.onsuccess = () => res(true);
+      tx.onerror = () => res(false);
+    } catch(e){ res(false); }
+  });
+}
+function idbDel(id){
+  return new Promise((res) => {
+    if (!idb) return res(false);
+    try {
+      const tx = idb.transaction('masters', 'readwrite').objectStore('masters').delete(id);
+      tx.onsuccess = () => res(true);
+      tx.onerror = () => res(false);
+    } catch(e){ res(false); }
+  });
+}
+async function loadMasters(){
+  masters = await idbAll();
+  masters.sort((a,b) => (a.created||0) - (b.created||0));
+  renderMasters();
+}
+function renderMasters(){
+  $('mcount').textContent = masters.length;
+  const g = $('masterGrid'); g.innerHTML = '';
+  const arr = [...masters];
+  const hasScores = Object.keys(masterScores).length > 0;
+  if (hasScores){
+    arr.sort((a,b) => ((masterScores[b.id] ?? -1) - (masterScores[a.id] ?? -1)));
+  }
+  arr.forEach(m => {
+    const c = document.createElement('div');
+    c.className = 'mcard';
+    const sc = masterScores[m.id];
+    const badge = (sc != null)
+      ? `<small style="color:${sc>=70?'var(--high)':'var(--low)'};font-weight:700">ตรงกับองค์ที่ตรวจ ${sc}%</small>`
+      : '';
+    c.innerHTML = `<img src="${m.img}"><div class="mn">${escapeHtml(m.name)}<small>${(m.pins||[]).length} หมุดตำหนิ</small>${badge}</div>`;
+    c.addEventListener('click', () => openWorkspace(m));
+    g.appendChild(c);
+  });
+  renderDB(); // อัปเดตปุ่มสำรอง
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* เพิ่มองค์ครู */
+$('addMasterBtn').addEventListener('click', () => $('masterInput').click());
+$('masterInput').addEventListener('change', async e => {
+  const files = [...e.target.files];
+  if (!files.length) return;
+  await ensureNet();
+  let done = 0;
+  for (const f of files){
+    try {
+      const img = await fileToImage(f);
+      // ย่อรูปให้ด้านยาวสุดไม่เกิน 1200px (คมพอส่องตำหนิ และไม่กินพื้นที่เกิน)
+      const mx = Math.max(img.width, img.height);
+      const sc = mx > 1200 ? 1200/mx : 1;
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(img.width*sc); cv.height = Math.round(img.height*sc);
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      const name = prompt(`ตั้งชื่อองค์ครู (รูปที่ ${done+1}/${files.length})`, f.name.replace(/\.[^.]+$/,'')) || 'องค์ครู';
+      const { v } = await analyzeImageSource(cv);   // เวกเตอร์ไว้จับคู่อัตโนมัติ
+      const m = {
+        id: Date.now() + '-' + Math.random().toString(36).slice(2,7),
+        name, img: cv.toDataURL('image/jpeg', 0.88),
+        v, pins: [], created: Date.now()
+      };
+      const ok = await idbPut(m);
+      if (ok) masters.push(m);
+      else $('status').textContent = 'บันทึกองค์ครูไม่สำเร็จ — เบราว์เซอร์อาจอยู่ในโหมดส่วนตัว';
+    } catch(err){}
+    done++;
+  }
+  renderMasters();
+  e.target.value = '';
+});
+
+/* ============ โหลดโมเดล ============ */
+async function ensureNet(){
+  if (net) return;
+  $('status').textContent = 'กำลังโหลดระบบวิเคราะห์ภาพ (ครั้งแรกอาจใช้เวลาสักครู่)…';
+  net = await mobilenet.load({version: 2, alpha: 1.0});
+  $('status').textContent = '';
+}
+
+/* ============ เพิ่มรูปพระแท้ (ฐานส่อง) ============ */
 $('addBtn').addEventListener('click', () => $('fileInput').click());
 $('fileInput').addEventListener('change', async e => {
   const files = [...e.target.files];
   if (!files.length) return;
-  // ถามราคาหนึ่งครั้งต่อชุด (ปกติเพิ่มทีละรุ่น)
   let batchPrice = null;
   const ans = prompt(`ราคา (บาท) ของพระในรูปชุดนี้ ${files.length} รูป\nใส่ตัวเลขอย่างเดียว เช่น 10000\nเว้นว่างถ้ายังไม่ระบุ (มาแตะรูปใส่ทีหลังได้)`, '');
   if (ans !== null && ans.trim() !== ''){
@@ -553,15 +784,13 @@ $('fileInput').addEventListener('change', async e => {
   for (const f of files){
     try {
       const img = await fileToImage(f);
-      // เก็บรูปย่อจากภาพต้นฉบับ (ก่อนตัดพื้นหลัง) ไว้โชว์
       const th = document.createElement('canvas'); th.width = 96; th.height = 96;
       th.getContext('2d').drawImage(img, 0, 0, 96, 96);
-      // ประมวลผล: ตัดพื้นหลัง + ครอปเฉพาะองค์พระอัตโนมัติ ก่อนคำนวณ
       const { v, h } = await analyzeImageSource(img);
       const rec = { v, h, img: th.toDataURL('image/jpeg', 0.7), p: PROC_VER };
       if (batchPrice !== null) rec.price = batchPrice;
       db.push(rec);
-    } catch(err){ /* ข้ามไฟล์ที่อ่านไม่ได้ */ }
+    } catch(err){}
     done++;
     $('status').textContent = `กำลังประมวลผลรูป ${done}/${files.length}…`;
   }
@@ -588,73 +817,83 @@ function srcToImage(src){
 }
 
 $('clearBtn').addEventListener('click', () => {
-  if (!confirm('ลบรูปพระแท้ทั้งหมดออกจากฐานข้อมูล?')) return;
+  if (!confirm('ลบรูปพระแท้ทั้งหมดออกจากฐานข้อมูลส่องพระ? (องค์ครูไม่ถูกลบ)')) return;
   db = []; saveDB(); renderDB();
   $('status').textContent = '';
 });
 
-/* ---------- สำรองข้อมูล / กู้คืน ---------- */
+/* ============ สำรอง / กู้คืน (รวมองค์ครู) ============ */
 $('backupBtn').addEventListener('click', () => {
   const d = new Date();
   const stamp = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
-  const blob = new Blob([JSON.stringify(db)], { type: 'application/json' });
+  const payload = { version: 2, refs: db, masters };
+  const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `song-phra-backup-${stamp}.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  $('status').textContent = `สำรองข้อมูล ${db.length} รูปเป็นไฟล์เรียบร้อย — เก็บไฟล์นี้ไว้ใน Google Drive จะปลอดภัยที่สุด`;
+  document.body.appendChild(a); a.click(); a.remove();
+  $('status').textContent = `สำรองข้อมูลเรียบร้อย (ฐานส่อง ${db.length} รูป + องค์ครู ${masters.length} รูป) — เก็บไฟล์ไว้ใน Google Drive จะปลอดภัยที่สุด`;
 });
-
 $('restoreBtn').addEventListener('click', () => $('restoreInput').click());
 $('restoreInput').addEventListener('change', async e => {
   const f = e.target.files[0];
   if (!f) return;
   try {
-    const text = await f.text();
-    const data = JSON.parse(text);
-    if (!Array.isArray(data)) throw new Error('bad');
-    // รับเฉพาะรายการที่มีข้อมูลครบ และไม่เพิ่มรูปที่มีอยู่แล้วซ้ำ
+    const data = JSON.parse(await f.text());
+    let refs = [], ms = [];
+    if (Array.isArray(data)) refs = data;                       // ไฟล์สำรองรุ่นเก่า
+    else { refs = data.refs || []; ms = data.masters || []; }
     const existing = new Set(db.map(r => r.img));
-    let added = 0, skipped = 0;
-    for (const r of data){
-      if (r && Array.isArray(r.v) && typeof r.img === 'string'){
-        if (existing.has(r.img)){ skipped++; continue; }
+    let added = 0;
+    for (const r of refs){
+      if (r && Array.isArray(r.v) && typeof r.img === 'string' && !existing.has(r.img)){
         db.push(r); existing.add(r.img); added++;
       }
     }
-    saveDB(); renderDB();
-    $('status').textContent = skipped
-      ? `กู้คืนเรียบร้อย เพิ่ม ${added} รูป (ข้าม ${skipped} รูปที่มีอยู่แล้ว) รวมทั้งหมด ${db.length} รูป`
-      : `กู้คืนเรียบร้อย เพิ่ม ${added} รูป รวมทั้งหมด ${db.length} รูป`;
-    // ถ้าไฟล์สำรองมาจากเวอร์ชันเก่า ให้ระบบอัปเดตการประมวลผลต่อเอง
-    const needsOld = db.some(r => r.p !== PROC_VER);
-    if (needsOld) loadDB();
+    const mIds = new Set(masters.map(m => m.id));
+    let mAdded = 0;
+    for (const m of ms){
+      if (m && m.id && typeof m.img === 'string' && !mIds.has(m.id)){
+        if (await idbPut(m)){ masters.push(m); mIds.add(m.id); mAdded++; }
+      }
+    }
+    saveDB(); renderDB(); renderMasters();
+    $('status').textContent = `กู้คืนเรียบร้อย — ฐานส่อง +${added} รูป, องค์ครู +${mAdded} รูป`;
+    if (db.some(r => r.p !== PROC_VER)) loadDB();
   } catch(err){
     $('status').textContent = 'อ่านไฟล์สำรองไม่ได้ — ตรวจดูว่าเลือกไฟล์ song-phra-backup ที่ดาวน์โหลดจากแอปนี้';
   }
   e.target.value = '';
 });
 
-/* ---------- กล้อง ---------- */
-$('goBtn').addEventListener('click', start);
-$('stopBtn').addEventListener('click', stop);
+/* ============ เกณฑ์ราคา ============ */
+try {
+  const savedLimit = localStorage.getItem(LIMIT_KEY);
+  if (savedLimit) $('priceLimit').value = savedLimit;
+} catch(e){}
+$('priceLimit').addEventListener('change', () => {
+  try { localStorage.setItem(LIMIT_KEY, $('priceLimit').value); } catch(e){}
+});
+function getLimit(){
+  const v = parseFloat($('priceLimit').value);
+  return (isFinite(v) && v > 0) ? v : null;
+}
 
-/* ---------- ซูม ---------- */
-let zoom = 1;
+/* ============ หน้าส่องพระ ============ */
+$('goBtn').addEventListener('click', startScan);
+$('stopBtn').addEventListener('click', stopScan);
 $('zoomSlider').addEventListener('input', () => {
   zoom = parseFloat($('zoomSlider').value);
   $('zoomVal').textContent = zoom.toFixed(1) + 'x';
-  $('cam').style.transform = `scale(${zoom})`;   // ขยายภาพที่เห็นบนจอ
+  $('cam').style.transform = `scale(${zoom})`;
 });
 
-async function start(){
+async function startScan(){
   await ensureNet();
   $('status').textContent = 'กำลังเปิดกล้อง… (กดอนุญาตใช้กล้องเมื่อระบบถาม)';
   try {
     stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: {ideal: 720}, height: {ideal: 720} },
+      video: { facingMode: 'environment', width: {ideal: 1280}, height: {ideal: 1280} },
       audio: false
     });
   } catch(e){
@@ -664,24 +903,20 @@ async function start(){
   const v = $('cam');
   v.srcObject = stream;
   await v.play();
-  $('setup').style.display = 'none';
-  $('app').style.display = 'flex';
+  showPage('pgScan');
   $('status').textContent = '';
   running = true;
-  loop();
+  scanLoop();
 }
-
 function setRing(ringId, pctId, pct){
   const numEl = $(pctId);
   numEl.textContent = pct + '%';
-  // ต่ำกว่า 70 = แดง, 70 ขึ้นไป = เขียว (ทั้งตัวเลขและวง)
   const color = pct >= 70 ? 'var(--high)' : 'var(--low)';
   numEl.style.color = color;
   const ring = $(ringId);
   ring.style.stroke = color;
   ring.style.strokeDashoffset = CIRC - (CIRC * pct / 100);
 }
-
 function showPrice(rec){
   const bar = $('priceBar'), txt = $('priceText'), sub = $('priceSub');
   bar.style.display = 'block';
@@ -701,20 +936,17 @@ function showPrice(rec){
   } else {
     txt.textContent = 'ไม่ได้ระบุราคา';
     txt.style.color = 'var(--muted)';
-    sub.textContent = 'แตะรูปในหน้าฐานข้อมูลเพื่อใส่ราคา';
+    sub.textContent = 'แตะรูปในหน้าหลักเพื่อใส่ราคา';
   }
 }
-
-async function loop(){
+async function scanLoop(){
   if (!running) return;
   try {
     const v = $('cam');
     if (v.videoWidth && db.length){
-      // ตัดภาพกลางจอตามระดับซูม แล้วครอปเฉพาะองค์พระอัตโนมัติต่ออีกชั้น
       const s = Math.min(v.videoWidth, v.videoHeight) / zoom;
       const baseX = (v.videoWidth-s)/2, baseY = (v.videoHeight-s)/2;
       const { q, qh } = await analyzeVideoFrame(v, baseX, baseY, s);
-
       let best = -1, bi = -1;
       for (let i = 0; i < db.length; i++){
         const c = cosine(q, db[i].v);
@@ -722,28 +954,396 @@ async function loop(){
       }
       if (bi >= 0){
         setRing('shapeRing', 'shapePct', shapeToPct(best));
-        if (db[bi].h){
-          setRing('colorRing', 'colorPct', colorToPct(histSim(qh, db[bi].h)));
-        }
+        if (db[bi].h) setRing('colorRing', 'colorPct', colorToPct(histSim(qh, db[bi].h)));
         $('matchImg').src = db[bi].img;
         showPrice(db[bi]);
       }
     }
-  } catch(err){
-    // ข้ามเฟรมที่มีปัญหา (เช่น ตรวจจับขอบเพี้ยนตอนซูม) ไม่ให้ทั้งระบบหยุดทำงาน
-  }
-  if (running) setTimeout(loop, 300);
+  } catch(err){ /* ข้ามเฟรมที่มีปัญหา */ }
+  if (running) setTimeout(scanLoop, 300);
 }
-
-function stop(){
+function stopScan(){
   running = false;
   if (stream){ stream.getTracks().forEach(t => t.stop()); stream = null; }
-  $('app').style.display = 'none';
-  $('setup').style.display = 'block';
+  showPage('pgSetup');
   $('status').textContent = '';
 }
 
-loadDB();
+/* 📸 เก็บภาพจากกล้อง → ระบบเลือกองค์ครูที่ตรงที่สุดให้อัตโนมัติ */
+$('capBtn').addEventListener('click', async () => {
+  const v = $('cam');
+  if (!v.videoWidth){ $('status').textContent = 'กล้องยังไม่พร้อม'; return; }
+  const s = Math.min(v.videoWidth, v.videoHeight) / zoom;
+  const baseX = (v.videoWidth-s)/2, baseY = (v.videoHeight-s)/2;
+  const hi = document.createElement('canvas');
+  const S = Math.min(1200, Math.round(s));
+  hi.width = S; hi.height = S;
+  hi.getContext('2d').drawImage(v, baseX, baseY, s, s, 0, 0, S, S);
+  sessionSuspect = cropForCompare(hi);
+  running = false;
+  if (stream){ stream.getTracks().forEach(t => t.stop()); stream = null; }
+  $('status').textContent = '📸 เก็บภาพแล้ว กำลังหาว่าตรงกับองค์ครูองค์ไหนที่สุด…';
+  try {
+    await ensureNet();
+    sessionSuspectVec = (await analyzeImageSource(sessionSuspect)).v;
+  } catch(e){ sessionSuspectVec = null; }
+  suspectVec = sessionSuspectVec;
+  if (suspectVec && masters.length){
+    await rankMasters();
+    const b = bestMaster();
+    if (b){
+      await openWorkspace(b.m);
+      $('status').textContent = `ระบบเลือกองค์ครู "${b.m.name}" ให้อัตโนมัติ — ตรงที่สุด ${b.pct}%`;
+      return;
+    }
+  }
+  showPage('pgMasters');
+  $('status').textContent = masters.length
+    ? '📸 เก็บภาพเรียบร้อย — แตะองค์ครูที่จะเทียบด้วยได้เลย'
+    : '📸 เก็บภาพเรียบร้อย — ยังไม่มีองค์ครูในคลัง กด "+ เพิ่มองค์ครู" ก่อน';
+});
+
+/* ============ จับคู่องค์ครูอัตโนมัติ ============ */
+async function ensureMasterVecs(){
+  const needs = masters.filter(m => !Array.isArray(m.v));
+  if (!needs.length) return;
+  await ensureNet();
+  let done = 0;
+  for (const m of needs){
+    try {
+      const img = await srcToImage(m.img);
+      const { v } = await analyzeImageSource(img);
+      m.v = v;
+      await idbPut(m);
+    } catch(e){}
+    done++;
+    $('status').textContent = `กำลังเตรียมองค์ครูสำหรับจับคู่ ${done}/${needs.length}…`;
+  }
+  $('status').textContent = '';
+}
+async function rankMasters(){
+  if (!suspectVec || !masters.length) return;
+  await ensureMasterVecs();
+  masterScores = {};
+  masters.forEach(m => {
+    if (Array.isArray(m.v)){
+      const c = cosine(suspectVec, m.v);
+      if (isFinite(c)) masterScores[m.id] = shapeToPct(c);
+    }
+  });
+  renderMasters();
+}
+function bestMaster(){
+  let best = null, bp = -1;
+  masters.forEach(m => {
+    const p = masterScores[m.id];
+    if (p != null && p > bp){ bp = p; best = m; }
+  });
+  return best ? { m: best, pct: bp } : null;
+}
+function updateWsMatch(){
+  const bar = $('wsMatchBar');
+  if (!suspectVec || !curMaster || !Array.isArray(curMaster.v)){
+    bar.style.display = 'none';
+    return;
+  }
+  const pct = shapeToPct(cosine(suspectVec, curMaster.v));
+  bar.style.display = 'block';
+  const t = $('wsMatchPct');
+  t.textContent = pct + '%';
+  t.style.color = pct >= 70 ? 'var(--high)' : 'var(--low)';
+  const b = bestMaster();
+  $('wsMatchSub').textContent = (b && b.m.id !== curMaster.id)
+    ? `ความเหมือนพิมพ์ทรงกับองค์ครูนี้ · องค์ครูที่ตรงสุดคือ "${b.m.name}" (${b.pct}%)`
+    : 'ความเหมือนพิมพ์ทรงระหว่างองค์ที่ตรวจสอบกับองค์ครูนี้';
+}
+
+/* ============ หน้ารายการองค์ครู ============ */
+$('compareBtn').addEventListener('click', () => { showPage('pgMasters'); $('status').textContent = ''; });
+$('mastersBackBtn').addEventListener('click', () => { showPage('pgSetup'); $('status').textContent = ''; });
+
+/* ============ หน้าเทียบตำหนิ (workspace) ============ */
+let curMaster = null;
+let masterCrop = null, suspectCrop = null;
+let view = { z: 1, cx: 0.5, cy: 0.5 };
+let wsMode = 'dual';
+let opacity = 0.5;
+let addingPin = false;
+let checks = {};          // index หมุด -> 'ok' | 'no'
+
+async function openWorkspace(m){
+  curMaster = m;
+  $('wsName').textContent = m.name;
+  const img = await srcToImage(m.img);
+  masterCrop = cropForCompare(img);
+  suspectCrop = sessionSuspect || null;
+  if (suspectCrop === sessionSuspect) suspectVec = sessionSuspectVec;
+  view = { z: 1, cx: 0.5, cy: 0.5 };
+  wsMode = 'dual'; opacity = 0.5; addingPin = false; checks = {};
+  $('wsZoom').value = 1; $('wsZoomVal').textContent = '1.0x';
+  $('opSlider').value = 50; $('opVal').textContent = '50%';
+  $('useCapBtn').style.display = sessionSuspect ? 'block' : 'none';
+  setMode('dual');
+  showPage('pgCompare');
+  $('status').textContent = suspectCrop ? '' : 'ยังไม่มีรูปองค์ที่ตรวจสอบ — กดปุ่มด้านล่างเพื่อเลือกรูป หรือกลับไปถ่ายจากหน้าส่อง';
+  updateWsMatch();
+  renderPinsPanel();
+  redraw();
+}
+$('wsBackBtn').addEventListener('click', () => { showPage('pgMasters'); $('status').textContent = ''; });
+
+$('renameMasterBtn').addEventListener('click', async () => {
+  if (!curMaster) return;
+  const nm = prompt('ชื่อองค์ครู', curMaster.name);
+  if (nm === null || !nm.trim()) return;
+  curMaster.name = nm.trim();
+  await idbPut(curMaster);
+  $('wsName').textContent = curMaster.name;
+  renderMasters();
+});
+$('delMasterBtn').addEventListener('click', async () => {
+  if (!curMaster) return;
+  if (!confirm(`ลบองค์ครู "${curMaster.name}" ?`)) return;
+  await idbDel(curMaster.id);
+  masters = masters.filter(x => x.id !== curMaster.id);
+  renderMasters();
+  showPage('pgMasters');
+});
+
+/* โหมดแท็บ */
+$('tabDual').addEventListener('click', () => setMode('dual'));
+$('tabOverlay').addEventListener('click', () => setMode('overlay'));
+$('tabPins').addEventListener('click', () => setMode('pins'));
+function setMode(m){
+  wsMode = m;
+  $('tabDual').className = m==='dual' ? 'on' : '';
+  $('tabOverlay').className = m==='overlay' ? 'on' : '';
+  $('tabPins').className = m==='pins' ? 'on' : '';
+  $('dualWrap').style.display = (m==='dual' || m==='pins') ? 'flex' : 'none';
+  $('ovWrap').style.display = m==='overlay' ? 'block' : 'none';
+  $('pinPanel').style.display = m==='pins' ? 'block' : 'none';
+  addingPin = false;
+  $('addPinBtn').textContent = '➕ เพิ่มหมุดตำหนิ (กดแล้วแตะจุดบนรูปองค์ครู)';
+  redraw();
+}
+
+/* ซูม/ความเข้ม */
+$('wsZoom').addEventListener('input', () => {
+  view.z = parseFloat($('wsZoom').value);
+  $('wsZoomVal').textContent = view.z.toFixed(1) + 'x';
+  redraw();
+});
+$('opSlider').addEventListener('input', () => {
+  opacity = parseFloat($('opSlider').value) / 100;
+  $('opVal').textContent = Math.round(opacity*100) + '%';
+  redraw();
+});
+
+/* เลือกรูปองค์ที่ตรวจสอบ */
+$('useCapBtn').addEventListener('click', async () => {
+  if (sessionSuspect){
+    suspectCrop = sessionSuspect;
+    suspectVec = sessionSuspectVec;
+    await rankMasters();
+    updateWsMatch();
+    $('status').textContent = '';
+    redraw();
+  }
+});
+$('pickSuspectBtn').addEventListener('click', () => $('suspectInput').click());
+$('suspectInput').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    const img = await fileToImage(f);
+    const mx = Math.max(img.width, img.height);
+    const sc = mx > 1600 ? 1600/mx : 1;
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(img.width*sc); cv.height = Math.round(img.height*sc);
+    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+    suspectCrop = cropForCompare(cv);
+    redraw();
+    $('status').textContent = 'กำลังคำนวณความเหมือนกับองค์ครู…';
+    await ensureNet();
+    suspectVec = (await analyzeImageSource(suspectCrop)).v;
+    await rankMasters();
+    updateWsMatch();
+    const b = bestMaster();
+    $('status').textContent = (b && curMaster && b.m.id !== curMaster.id)
+      ? `หมายเหตุ: องค์ครูที่ตรงสุดคือ "${b.m.name}" (${b.pct}%) — กลับไปหน้ารายการเพื่อเปิดดูได้`
+      : '';
+    redraw();
+  } catch(err){ $('status').textContent = 'อ่านรูปไม่ได้ ลองรูปอื่น'; }
+  e.target.value = '';
+});
+
+/* ---------- วาดภาพตาม view ---------- */
+function computeSrcRect(src){
+  const sw = src.width / view.z;
+  let sx = view.cx*src.width - sw/2;
+  let sy = view.cy*src.height - sw/2;
+  sx = Math.max(0, Math.min(src.width - sw, sx));
+  sy = Math.max(0, Math.min(src.height - sw, sy));
+  return { sx, sy, sw };
+}
+function drawInto(cv, src, withPins){
+  const ctx = cv.getContext('2d');
+  const S = cv.width;
+  ctx.fillStyle = '#141008'; ctx.fillRect(0, 0, S, S);
+  if (!src){
+    ctx.fillStyle = '#9A8A6C';
+    ctx.font = '28px "Noto Sans Thai", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('ยังไม่มีรูป', S/2, S/2 - 10);
+    ctx.font = '20px "Noto Sans Thai", sans-serif';
+    ctx.fillText('เลือกรูปด้านล่าง', S/2, S/2 + 24);
+    return;
+  }
+  const { sx, sy, sw } = computeSrcRect(src);
+  ctx.drawImage(src, sx, sy, sw, sw, 0, 0, S, S);
+  if (withPins && curMaster && curMaster.pins){
+    curMaster.pins.forEach((p, i) => {
+      const px = (p.x*src.width - sx) / sw * S;
+      const py = (p.y*src.height - sy) / sw * S;
+      if (px < -20 || px > S+20 || py < -20 || py > S+20) return;
+      ctx.beginPath();
+      ctx.arc(px, py, 16, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(217,164,65,.92)';
+      ctx.fill();
+      ctx.lineWidth = 3; ctx.strokeStyle = '#1A1206'; ctx.stroke();
+      ctx.fillStyle = '#1A1206';
+      ctx.font = 'bold 17px "Noto Sans Thai", sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(String(i+1), px, py+1);
+    });
+  }
+}
+function redraw(){
+  if (wsMode === 'dual' || wsMode === 'pins'){
+    drawInto($('cvMaster'), masterCrop, wsMode === 'pins');
+    drawInto($('cvSuspect'), suspectCrop, false);
+  }
+  if (wsMode === 'overlay'){
+    const cv = $('ovCanvas'), ctx = cv.getContext('2d'), S = cv.width;
+    ctx.fillStyle = '#141008'; ctx.fillRect(0, 0, S, S);
+    const base = suspectCrop || masterCrop;
+    if (base){
+      const r1 = computeSrcRect(base);
+      ctx.globalAlpha = 1;
+      ctx.drawImage(base, r1.sx, r1.sy, r1.sw, r1.sw, 0, 0, S, S);
+    }
+    if (suspectCrop && masterCrop){
+      const r2 = computeSrcRect(masterCrop);
+      ctx.globalAlpha = opacity;
+      ctx.drawImage(masterCrop, r2.sx, r2.sy, r2.sw, r2.sw, 0, 0, S, S);
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+
+/* ---------- ลากเลื่อน + แตะเพิ่มหมุด ---------- */
+function bindPan(cv, isMaster){
+  let dragging = false, moved = 0, lastX = 0, lastY = 0;
+  cv.addEventListener('pointerdown', e => {
+    dragging = true; moved = 0; lastX = e.clientX; lastY = e.clientY;
+    cv.setPointerCapture(e.pointerId);
+  });
+  cv.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    moved += Math.abs(dx) + Math.abs(dy);
+    lastX = e.clientX; lastY = e.clientY;
+    const src = isMaster ? masterCrop : (suspectCrop || masterCrop);
+    if (!src) return;
+    const rect = cv.getBoundingClientRect();
+    const sw = src.width / view.z;
+    view.cx -= dx / rect.width * sw / src.width;
+    view.cy -= dy / rect.height * sw / src.height;
+    const half = 0.5 / view.z;
+    view.cx = Math.max(half, Math.min(1-half, view.cx));
+    view.cy = Math.max(half, Math.min(1-half, view.cy));
+    redraw();
+  });
+  cv.addEventListener('pointerup', e => {
+    dragging = false;
+    // แตะเบาๆ (ไม่ได้ลาก) บนรูปองค์ครูขณะอยู่ในโหมดเพิ่มหมุด = ปักหมุด
+    if (moved < 8 && isMaster && wsMode === 'pins' && masterCrop && curMaster){
+      const rect = cv.getBoundingClientRect();
+      const ox = (e.clientX - rect.left) / rect.width;
+      const oy = (e.clientY - rect.top) / rect.height;
+      const { sx, sy, sw } = computeSrcRect(masterCrop);
+      const nx = (sx + ox*sw) / masterCrop.width;
+      const ny = (sy + oy*sw) / masterCrop.height;
+      if (addingPin){
+        const label = prompt('ตำหนิจุดนี้คืออะไร (เช่น เนื้อเกินใต้ฐาน, รอยบล็อกแตกที่ซุ้ม)', '');
+        if (label !== null && label.trim()){
+          curMaster.pins = curMaster.pins || [];
+          curMaster.pins.push({ x: nx, y: ny, label: label.trim() });
+          idbPut(curMaster);
+          renderPinsPanel(); renderMasters(); redraw();
+        }
+        addingPin = false;
+        $('addPinBtn').textContent = '➕ เพิ่มหมุดตำหนิ (กดแล้วแตะจุดบนรูปองค์ครู)';
+      } else {
+        // แตะใกล้หมุดเดิม = ถามลบ
+        const hit = (curMaster.pins||[]).findIndex(p => {
+          const px = (p.x*masterCrop.width - sx) / sw;
+          const py = (p.y*masterCrop.height - sy) / sw;
+          return Math.hypot(px-ox, py-oy) < 0.05;
+        });
+        if (hit >= 0 && confirm(`ลบหมุดที่ ${hit+1}: "${curMaster.pins[hit].label}" ?`)){
+          curMaster.pins.splice(hit, 1);
+          delete checks[hit];
+          idbPut(curMaster);
+          renderPinsPanel(); renderMasters(); redraw();
+        }
+      }
+    }
+  });
+}
+bindPan($('cvMaster'), true);
+bindPan($('cvSuspect'), false);
+bindPan($('ovCanvas'), false);
+
+$('addPinBtn').addEventListener('click', () => {
+  addingPin = !addingPin;
+  $('addPinBtn').textContent = addingPin
+    ? '👉 แตะจุดตำหนิบนรูปองค์ครูได้เลย (กดอีกทีเพื่อยกเลิก)'
+    : '➕ เพิ่มหมุดตำหนิ (กดแล้วแตะจุดบนรูปองค์ครู)';
+});
+
+/* เช็คลิสต์หมุดตำหนิ */
+function renderPinsPanel(){
+  const list = $('pinList'); list.innerHTML = '';
+  const pins = (curMaster && curMaster.pins) || [];
+  pins.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'pinrow';
+    row.innerHTML = `<span class="no">${i+1}</span><span class="lb">${escapeHtml(p.label)}</span>`;
+    const bOk = document.createElement('button');
+    bOk.textContent = 'ตรง';
+    bOk.className = 'ok' + (checks[i]==='ok' ? ' sel-ok' : '');
+    const bNo = document.createElement('button');
+    bNo.textContent = 'ไม่ตรง';
+    bNo.className = 'no2' + (checks[i]==='no' ? ' sel-no' : '');
+    bOk.addEventListener('click', () => { checks[i] = checks[i]==='ok' ? undefined : 'ok'; renderPinsPanel(); });
+    bNo.addEventListener('click', () => { checks[i] = checks[i]==='no' ? undefined : 'no'; renderPinsPanel(); });
+    row.appendChild(bOk); row.appendChild(bNo);
+    list.appendChild(row);
+  });
+  const ok = Object.values(checks).filter(x => x==='ok').length;
+  const no = Object.values(checks).filter(x => x==='no').length;
+  $('pinSummary').innerHTML = pins.length
+    ? `เช็คแล้ว <b style="color:var(--high)">ตรง ${ok}</b> · <b style="color:var(--low)">ไม่ตรง ${no}</b> จากทั้งหมด ${pins.length} จุด`
+    : 'ยังไม่มีหมุดตำหนิ — กดปุ่มด้านบนแล้วแตะจุดสำคัญบนรูปองค์ครู';
+}
+
+/* ============ เริ่มต้น ============ */
+(async () => {
+  await openIDB();
+  await loadMasters();
+  await loadDB();
+})();
 </script>
 </body>
 </html>
