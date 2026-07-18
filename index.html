@@ -236,7 +236,7 @@
     <input type="file" id="fileInput" class="hiddenInput" accept="image/*" multiple>
     <button class="btn" id="addBtn">+ เพิ่มรูปพระแท้</button>
     <button class="btn" id="goBtn" disabled>เริ่มส่องพระ</button>
-    <button class="btn" id="compareBtn">🔍 เทียบตำหนิ (องค์ครู)</button>
+    <button class="btn" id="compareBtn">🔍 เทียบตำหนิ</button>
     <button class="btn secondary" id="backupBtn" style="display:none">⬇ สำรองฐานข้อมูลเป็นไฟล์</button>
     <input type="file" id="restoreInput" class="hiddenInput" accept=".json,application/json">
     <button class="btn secondary" id="restoreBtn">⬆ กู้คืนจากไฟล์สำรอง</button>
@@ -246,7 +246,7 @@
       <input id="priceLimit" type="number" inputmode="numeric" min="0" placeholder="เช่น 10000">
       <span>บาท</span>
     </div>
-    <p class="hint">กด "เพิ่มรูปพระแท้" เลือกรูปได้ทีละหลายรูป (เลือกจาก Google Drive ได้) แอปถามราคาหนึ่งครั้งต่อชุด แตะรูปย่อเพื่อแก้ราคาทีละรูป<br><br>"เทียบตำหนิ" คือส่วนเก็บรูปองค์ครูความละเอียดเต็ม ไว้เทียบจุดตำหนิแบบละเอียดหลังจากส่องแล้ว % เข้าตา<br><br>ไฟล์สำรองรวมทั้งฐานข้อมูลส่องพระและองค์ครู — สำรองเก็บใน Google Drive เป็นระยะ</p>
+    <p class="hint">เพิ่มรูปพระแท้ครั้งเดียว ใช้ได้ทั้งส่องและเทียบตำหนิ — เลือกรูปได้ทีละหลายรูป (เลือกจาก Google Drive ได้) แอปถามชื่อรุ่นและราคาหนึ่งครั้งต่อชุด แตะรูปย่อเพื่อแก้ราคาทีละรูป<br><br>ไฟล์สำรองรวมข้อมูลทุกส่วน (รูป ราคา หมุดตำหนิ) — สำรองเก็บใน Google Drive เป็นระยะ</p>
   </div>
 </div>
 
@@ -304,11 +304,9 @@
 <!-- ============ หน้ารายการองค์ครู ============ -->
 <div class="page" id="pgMasters">
   <div class="card" style="width:100%">
-    <div class="dbcount"><b id="mcount">0</b><span>องค์ครูในคลัง</span></div>
+    <div class="dbcount"><b id="mcount">0</b><span>รูปพระแท้พร้อมเทียบตำหนิ</span></div>
     <div id="masterGrid"></div>
-    <input type="file" id="masterInput" class="hiddenInput" accept="image/*" multiple>
-    <button class="btn" id="addMasterBtn">+ เพิ่มองค์ครู (รูปคมชัด)</button>
-    <p class="hint">องค์ครู = รูปพระแท้ต้นฉบับความละเอียดเต็ม รุ่นละ 1-2 รูปที่ชัดที่สุด ใช้เทียบตำหนิแบบละเอียด · แตะองค์ครูเพื่อเข้าโหมดเทียบ</p>
+    <p class="hint">รายการนี้มาจากรูปพระแท้ที่เพิ่มไว้ในหน้าหลักโดยอัตโนมัติ ไม่ต้องอัปโหลดซ้ำ · แตะรูปเพื่อเข้าโหมดเทียบ · รูปที่ติดป้าย (รูปย่อ) คือรูปจากข้อมูลรุ่นเก่าซึ่งซูมได้จำกัด — ถ้าอยากให้คมสุด ลบรูปนั้นแล้วเพิ่มไฟล์ต้นฉบับใหม่จากหน้าหลัก</p>
     <button class="btn secondary" id="mastersBackBtn">← กลับหน้าหลัก</button>
   </div>
 </div>
@@ -619,6 +617,23 @@ async function loadDB(){
     saveDB();
     $('status').textContent = 'อัปเดตฐานข้อมูลเรียบร้อย';
   }
+  // รูปเดิมที่ยังไม่มีในหน้าเทียบตำหนิ → สร้างให้อัตโนมัติจากรูปที่เก็บไว้ (ไม่ต้องอัปโหลดใหม่)
+  const mIds = new Set(masters.map(m => m.id));
+  const orphan = db.filter(r => !r.mid || !mIds.has(r.mid));
+  if (orphan.length){
+    let i = 0;
+    for (const r of orphan){
+      i++;
+      const m = {
+        id: Date.now() + '-' + i + '-' + Math.random().toString(36).slice(2,5),
+        name: 'รูปเดิม #' + i,
+        img: r.img, v: r.v, pins: [], created: Date.now(), lowRes: true
+      };
+      if (typeof r.price === 'number') m.price = r.price;
+      if (await idbPut(m)){ masters.push(m); r.mid = m.id; }
+    }
+    saveDB(); renderMasters();
+  }
 }
 function saveDB(){
   try { localStorage.setItem(DB_KEY, JSON.stringify(db)); return true; }
@@ -718,7 +733,8 @@ function renderMasters(){
     const badge = (sc != null)
       ? `<small style="color:${sc>=70?'var(--high)':'var(--low)'};font-weight:700">ตรงกับองค์ที่ตรวจ ${sc}%</small>`
       : '';
-    c.innerHTML = `<img src="${m.img}"><div class="mn">${escapeHtml(m.name)}<small>${(m.pins||[]).length} หมุดตำหนิ</small>${badge}</div>`;
+    const lr = m.lowRes ? `<small style="color:var(--low)">(รูปย่อ — ซูมได้จำกัด)</small>` : '';
+    c.innerHTML = `<img src="${m.img}"><div class="mn">${escapeHtml(m.name)}<small>${(m.pins||[]).length} หมุดตำหนิ</small>${lr}${badge}</div>`;
     c.addEventListener('click', () => openWorkspace(m));
     g.appendChild(c);
   });
@@ -726,38 +742,7 @@ function renderMasters(){
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-/* เพิ่มองค์ครู */
-$('addMasterBtn').addEventListener('click', () => $('masterInput').click());
-$('masterInput').addEventListener('change', async e => {
-  const files = [...e.target.files];
-  if (!files.length) return;
-  await ensureNet();
-  let done = 0;
-  for (const f of files){
-    try {
-      const img = await fileToImage(f);
-      // ย่อรูปให้ด้านยาวสุดไม่เกิน 1200px (คมพอส่องตำหนิ และไม่กินพื้นที่เกิน)
-      const mx = Math.max(img.width, img.height);
-      const sc = mx > 1200 ? 1200/mx : 1;
-      const cv = document.createElement('canvas');
-      cv.width = Math.round(img.width*sc); cv.height = Math.round(img.height*sc);
-      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-      const name = prompt(`ตั้งชื่อองค์ครู (รูปที่ ${done+1}/${files.length})`, f.name.replace(/\.[^.]+$/,'')) || 'องค์ครู';
-      const { v } = await analyzeImageSource(cv);   // เวกเตอร์ไว้จับคู่อัตโนมัติ
-      const m = {
-        id: Date.now() + '-' + Math.random().toString(36).slice(2,7),
-        name, img: cv.toDataURL('image/jpeg', 0.88),
-        v, pins: [], created: Date.now()
-      };
-      const ok = await idbPut(m);
-      if (ok) masters.push(m);
-      else $('status').textContent = 'บันทึกองค์ครูไม่สำเร็จ — เบราว์เซอร์อาจอยู่ในโหมดส่วนตัว';
-    } catch(err){}
-    done++;
-  }
-  renderMasters();
-  e.target.value = '';
-});
+/* หมายเหตุ: รายการเทียบตำหนิสร้างจากรูปพระแท้ในหน้าหลักโดยอัตโนมัติ ไม่มีการอัปโหลดแยก */
 
 /* ============ โหลดโมเดล ============ */
 async function ensureNet(){
@@ -772,8 +757,10 @@ $('addBtn').addEventListener('click', () => $('fileInput').click());
 $('fileInput').addEventListener('change', async e => {
   const files = [...e.target.files];
   if (!files.length) return;
+  const nameAns = prompt(`ตั้งชื่อรุ่น/ชุดของรูป ${files.length} รูปนี้ (ใช้แสดงในหน้าเทียบตำหนิ)`, files[0].name.replace(/\.[^.]+$/,''));
+  const batchName = (nameAns && nameAns.trim()) ? nameAns.trim() : 'พระแท้';
   let batchPrice = null;
-  const ans = prompt(`ราคา (บาท) ของพระในรูปชุดนี้ ${files.length} รูป\nใส่ตัวเลขอย่างเดียว เช่น 10000\nเว้นว่างถ้ายังไม่ระบุ (มาแตะรูปใส่ทีหลังได้)`, '');
+  const ans = prompt(`ราคา (บาท) ของพระในรูปชุดนี้\nใส่ตัวเลขอย่างเดียว เช่น 10000\nเว้นว่างถ้ายังไม่ระบุ (มาแตะรูปใส่ทีหลังได้)`, '');
   if (ans !== null && ans.trim() !== ''){
     const num = parseFloat(String(ans).replace(/[, ]/g,''));
     if (isFinite(num) && num >= 0) batchPrice = num;
@@ -789,13 +776,27 @@ $('fileInput').addEventListener('change', async e => {
       const { v, h } = await analyzeImageSource(img);
       const rec = { v, h, img: th.toDataURL('image/jpeg', 0.7), p: PROC_VER };
       if (batchPrice !== null) rec.price = batchPrice;
+      // เก็บรูปความละเอียดเต็มไว้เทียบตำหนิด้วยในขั้นตอนเดียว
+      const mxd = Math.max(img.width, img.height);
+      const sc = mxd > 1200 ? 1200/mxd : 1;
+      const full = document.createElement('canvas');
+      full.width = Math.round(img.width*sc); full.height = Math.round(img.height*sc);
+      full.getContext('2d').drawImage(img, 0, 0, full.width, full.height);
+      const m = {
+        id: Date.now() + '-' + Math.random().toString(36).slice(2,7),
+        name: files.length > 1 ? `${batchName} #${done+1}` : batchName,
+        img: full.toDataURL('image/jpeg', 0.88),
+        v, pins: [], created: Date.now()
+      };
+      if (batchPrice !== null) m.price = batchPrice;
+      if (await idbPut(m)){ masters.push(m); rec.mid = m.id; }
       db.push(rec);
     } catch(err){}
     done++;
     $('status').textContent = `กำลังประมวลผลรูป ${done}/${files.length}…`;
   }
-  saveDB(); renderDB();
-  $('status').textContent = `เพิ่มรูปเรียบร้อย ตอนนี้มี ${db.length} รูปในฐานข้อมูล`;
+  saveDB(); renderDB(); renderMasters();
+  $('status').textContent = `เพิ่มรูปเรียบร้อย ${db.length} รูป — พร้อมใช้ทั้งส่องและเทียบตำหนิ`;
   $('addBtn').disabled = false;
   e.target.value = '';
 });
@@ -816,9 +817,11 @@ function srcToImage(src){
   });
 }
 
-$('clearBtn').addEventListener('click', () => {
-  if (!confirm('ลบรูปพระแท้ทั้งหมดออกจากฐานข้อมูลส่องพระ? (องค์ครูไม่ถูกลบ)')) return;
+$('clearBtn').addEventListener('click', async () => {
+  if (!confirm('ลบรูปพระแท้ทั้งหมด? (รวมรายการเทียบตำหนิและหมุดทุกจุด)')) return;
   db = []; saveDB(); renderDB();
+  for (const m of masters) await idbDel(m.id);
+  masters = []; renderMasters();
   $('status').textContent = '';
 });
 
@@ -1103,10 +1106,11 @@ $('renameMasterBtn').addEventListener('click', async () => {
 });
 $('delMasterBtn').addEventListener('click', async () => {
   if (!curMaster) return;
-  if (!confirm(`ลบองค์ครู "${curMaster.name}" ?`)) return;
+  if (!confirm(`ลบรูป "${curMaster.name}" ออกจากทั้งฐานส่องและหน้าเทียบตำหนิ?`)) return;
   await idbDel(curMaster.id);
   masters = masters.filter(x => x.id !== curMaster.id);
-  renderMasters();
+  db = db.filter(r => r.mid !== curMaster.id);
+  saveDB(); renderDB(); renderMasters();
   showPage('pgMasters');
 });
 
