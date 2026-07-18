@@ -343,9 +343,12 @@ function getBBox(mask){
   }
   if (maxX < 0) return null;
   const w = maxX-minX+1, h = maxY-minY+1;
+  // กันกรอบที่เล็กผิดปกติ (มักเกิดจากตรวจจับขอบผิดพลาดตอนซูมเข้ามากๆ หรือแสงไม่นิ่ง)
+  if (w < W*0.15 || h < W*0.15) return null;
   const mx = w*0.12, my = h*0.12;         // เผื่อขอบ 12% กันตัดองค์พระขาด
   const x0 = Math.max(0, minX-mx), y0 = Math.max(0, minY-my);
   const x1 = Math.min(W, maxX+1+mx), y1 = Math.min(W, maxY+1+my);
+  if (x1-x0 < 2 || y1-y0 < 2) return null;   // กันขนาดศูนย์/ติดลบหลุดไปคำนวณต่อ
   return { x:x0, y:y0, w:x1-x0, h:y1-y0 };
 }
 
@@ -704,28 +707,32 @@ function showPrice(rec){
 
 async function loop(){
   if (!running) return;
-  const v = $('cam');
-  if (v.videoWidth && db.length){
-    // ตัดภาพกลางจอตามระดับซูม แล้วครอปเฉพาะองค์พระอัตโนมัติต่ออีกชั้น
-    const s = Math.min(v.videoWidth, v.videoHeight) / zoom;
-    const baseX = (v.videoWidth-s)/2, baseY = (v.videoHeight-s)/2;
-    const { q, qh } = await analyzeVideoFrame(v, baseX, baseY, s);
+  try {
+    const v = $('cam');
+    if (v.videoWidth && db.length){
+      // ตัดภาพกลางจอตามระดับซูม แล้วครอปเฉพาะองค์พระอัตโนมัติต่ออีกชั้น
+      const s = Math.min(v.videoWidth, v.videoHeight) / zoom;
+      const baseX = (v.videoWidth-s)/2, baseY = (v.videoHeight-s)/2;
+      const { q, qh } = await analyzeVideoFrame(v, baseX, baseY, s);
 
-    let best = -1, bi = -1;
-    for (let i = 0; i < db.length; i++){
-      const c = cosine(q, db[i].v);
-      if (c > best){ best = c; bi = i; }
-    }
-    if (bi >= 0){
-      setRing('shapeRing', 'shapePct', shapeToPct(best));
-      if (db[bi].h){
-        setRing('colorRing', 'colorPct', colorToPct(histSim(qh, db[bi].h)));
+      let best = -1, bi = -1;
+      for (let i = 0; i < db.length; i++){
+        const c = cosine(q, db[i].v);
+        if (isFinite(c) && c > best){ best = c; bi = i; }
       }
-      $('matchImg').src = db[bi].img;
-      showPrice(db[bi]);
+      if (bi >= 0){
+        setRing('shapeRing', 'shapePct', shapeToPct(best));
+        if (db[bi].h){
+          setRing('colorRing', 'colorPct', colorToPct(histSim(qh, db[bi].h)));
+        }
+        $('matchImg').src = db[bi].img;
+        showPrice(db[bi]);
+      }
     }
+  } catch(err){
+    // ข้ามเฟรมที่มีปัญหา (เช่น ตรวจจับขอบเพี้ยนตอนซูม) ไม่ให้ทั้งระบบหยุดทำงาน
   }
-  setTimeout(loop, 300);
+  if (running) setTimeout(loop, 300);
 }
 
 function stop(){
