@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ส่องพระ AI — เทียบความเหมือนกับพระแท้</title>
+<title>ส่องพระ AI — เทียบพิมพ์ทรงและโทนสีผิว</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Pridi:wght@400;600&family=Noto+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet">
@@ -62,8 +62,27 @@
     display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:12px;
     max-height:132px;overflow-y:auto;
   }
-  #thumbs img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+  #thumbs .th{position:relative;cursor:pointer}
+  #thumbs img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
+  #thumbs .pb{
+    position:absolute;left:2px;right:2px;bottom:2px;font-size:.52rem;text-align:center;
+    background:rgba(21,16,7,.8);color:var(--gold);border-radius:6px;padding:1px 0;
+  }
   #fileInput{display:none}
+
+  /* ---- เกณฑ์ราคา ---- */
+  .limitrow{
+    display:flex;align-items:center;gap:10px;margin-top:14px;
+    background:var(--surface2);border:1px solid #4A3A24;border-radius:12px;padding:10px 14px;
+  }
+  .limitrow label{font-size:.82rem;color:var(--text);flex-shrink:0}
+  .limitrow input{
+    flex:1;min-width:0;padding:8px 10px;border-radius:9px;border:1px solid #4A3A24;
+    background:var(--surface);color:var(--gold);font-size:.95rem;font-weight:700;
+    outline:none;text-align:right;font-family:'Noto Sans Thai',sans-serif;
+  }
+  .limitrow input:focus{border-color:var(--gold)}
+  .limitrow span{font-size:.8rem;color:var(--muted)}
 
   /* ---- กล้อง ---- */
   #app{display:none;width:100%;max-width:430px;flex-direction:column;align-items:center}
@@ -78,29 +97,49 @@
   .c2{top:12px;right:12px;border-width:2px 2px 0 0;border-radius:0 6px 0 0}
   .c3{bottom:12px;left:12px;border-width:0 0 2px 2px;border-radius:0 0 0 6px}
   .c4{bottom:12px;right:12px;border-width:0 2px 2px 0;border-radius:0 0 6px 0}
+  /* ภาพเล็กมุมจอ: สิ่งที่ระบบ "เห็น" หลังตัดพื้นหลัง */
+  #seen{
+    position:absolute;right:10px;bottom:10px;width:74px;height:74px;
+    border-radius:10px;border:1px solid var(--gold);opacity:.92;background:#222;
+  }
+  .seenlabel{
+    position:absolute;right:10px;bottom:88px;font-size:.58rem;color:#E8DCC2;
+    background:rgba(21,16,7,.72);padding:2px 7px;border-radius:7px;
+  }
 
   .verdict{
-    display:flex;align-items:center;gap:16px;width:100%;
+    display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;
     background:var(--surface);border:1px solid var(--line);border-radius:18px;
-    padding:16px;margin-top:14px;
+    padding:16px 14px;margin-top:14px;
   }
-  .ring{position:relative;width:104px;height:104px;flex-shrink:0}
+  .ring{position:relative;width:92px;height:92px;flex-shrink:0}
   .ring svg{transform:rotate(-90deg)}
-  .ring .track{stroke:#3A2E1B;fill:none;stroke-width:8}
-  .ring .fill{stroke:var(--gold);fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .3s,stroke .3s}
+  .ring .track{stroke:#3A2E1B;fill:none;stroke-width:7}
+  .ring .fill{fill:none;stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .3s,stroke .3s;stroke:var(--gold)}
   .ring .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-  .ring .num b{font-size:1.55rem;font-weight:700;line-height:1}
-  .ring .num span{font-size:.62rem;color:var(--muted);margin-top:2px}
+  .ring .num b{font-size:1.3rem;font-weight:700;line-height:1}
+  .ring .num span{font-size:.6rem;color:var(--muted);margin-top:3px}
 
-  .match{flex:1;min-width:0;display:flex;align-items:center;gap:12px}
+  .match{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0}
   .match img{
-    width:64px;height:64px;object-fit:cover;border-radius:10px;
-    border:2px solid var(--gold);flex-shrink:0;background:var(--surface2);
+    width:72px;height:72px;object-fit:cover;border-radius:10px;
+    border:2px solid var(--gold);background:var(--surface2);
   }
-  .match .t{font-size:.78rem;color:var(--muted);line-height:1.6}
-  .match .t b{display:block;color:var(--text);font-size:.9rem;font-weight:500}
+  .match span{font-size:.62rem;color:var(--muted);text-align:center;line-height:1.4}
+
+  .pricebar{
+    width:100%;margin-top:10px;background:var(--surface);border:1px solid var(--line);
+    border-radius:14px;padding:12px 16px;text-align:center;
+  }
+  .pricebar b{font-family:'Pridi',serif;font-size:1.25rem;font-weight:600}
+  .pricebar small{display:block;font-size:.68rem;color:var(--muted);margin-top:2px}
 
   #status{font-size:.85rem;color:var(--muted);margin-top:14px;text-align:center;line-height:1.7;max-width:430px}
+  .lighttip{
+    width:100%;max-width:430px;margin-top:10px;font-size:.72rem;color:var(--muted);
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:10px 14px;line-height:1.7;text-align:center;
+  }
   .warn{
     width:100%;max-width:430px;margin-top:16px;font-size:.72rem;color:var(--muted);
     line-height:1.7;text-align:center;border-top:1px solid var(--line);padding-top:12px;
@@ -112,7 +151,7 @@
 
 <header>
   <h1>ส่องพระ AI</h1>
-  <p>เทียบความเหมือนกับฐานข้อมูลรูปพระแท้</p>
+  <p>เทียบพิมพ์ทรงและโทนสีผิว · ตัดพื้นหลังอัตโนมัติ</p>
 </header>
 
 <!-- หน้าจัดการฐานข้อมูล -->
@@ -120,10 +159,18 @@
   <div class="dbcount"><b id="count">0</b><span>รูปพระแท้ในฐานข้อมูล</span></div>
   <div id="thumbs"></div>
   <input type="file" id="fileInput" accept="image/*" multiple>
-  <button class="btn" id="addBtn">+ เพิ่มรูปพระแท้</button>
   <button class="btn" id="goBtn" disabled>เริ่มส่องพระ</button>
+  <button class="btn" id="addBtn">+ เพิ่มรูปพระแท้</button>
+  <button class="btn secondary" id="backupBtn" style="display:none">⬇ สำรองฐานข้อมูลเป็นไฟล์</button>
+  <input type="file" id="restoreInput" accept=".json,application/json" style="display:none">
+  <button class="btn secondary" id="restoreBtn">⬆ กู้คืนจากไฟล์สำรอง</button>
   <button class="btn danger" id="clearBtn" style="display:none">ล้างฐานข้อมูลทั้งหมด</button>
-  <p class="hint">กด "เพิ่มรูปพระแท้" แล้วเลือกรูปจากเครื่องได้ทีละหลายรูป (ในหน้าเลือกไฟล์สามารถเลือกจาก Google Drive ได้ด้วย) เพิ่มครั้งเดียว เครื่องจะจำไว้ให้ตลอด</p>
+  <div class="limitrow">
+    <label>เกณฑ์ราคา</label>
+    <input id="priceLimit" type="number" inputmode="numeric" min="0" placeholder="เช่น 10000">
+    <span>บาท</span>
+  </div>
+  <p class="hint">กด "เพิ่มรูปพระแท้" แล้วเลือกรูปจากเครื่องได้ทีละหลายรูป (เลือกจาก Google Drive ได้ด้วย) แอปจะถามราคาหนึ่งครั้งต่อชุด และแตะรูปย่อด้านบนเพื่อแก้ราคาทีละรูปได้<br><br>เกณฑ์ราคา: ตอนส่อง ถ้าราคาของรูปที่จับคู่ได้ ไม่เกินเกณฑ์ = ตัวเลขสีเขียว, เกินเกณฑ์ = สีแดง<br><br>แนะนำ: กด "สำรองฐานข้อมูลเป็นไฟล์" เก็บไฟล์ไว้ใน Google Drive เป็นระยะ — ถ้าเปลี่ยนเครื่องหรือข้อมูลหาย กด "กู้คืนจากไฟล์สำรอง" ได้ทันทีโดยไม่ต้องเพิ่มรูปใหม่</p>
 </div>
 
 <!-- หน้ากล้อง -->
@@ -132,46 +179,158 @@
     <video id="cam" playsinline muted></video>
     <span class="corner c1"></span><span class="corner c2"></span>
     <span class="corner c3"></span><span class="corner c4"></span>
+    <span class="seenlabel">ภาพที่ระบบเห็น</span>
+    <canvas id="seen" width="224" height="224"></canvas>
   </div>
 
   <div class="verdict">
     <div class="ring">
-      <svg width="104" height="104" viewBox="0 0 104 104">
-        <circle class="track" cx="52" cy="52" r="45"></circle>
-        <circle class="fill" id="ringFill" cx="52" cy="52" r="45"
-                stroke-dasharray="282.7" stroke-dashoffset="282.7"></circle>
+      <svg width="92" height="92" viewBox="0 0 92 92">
+        <circle class="track" cx="46" cy="46" r="39"></circle>
+        <circle class="fill" id="shapeRing" cx="46" cy="46" r="39"
+                stroke-dasharray="245" stroke-dashoffset="245"></circle>
       </svg>
-      <div class="num"><b id="pct">–</b><span>ความเหมือน</span></div>
+      <div class="num"><b id="shapePct">–</b><span>พิมพ์ทรง</span></div>
     </div>
+
+    <div class="ring">
+      <svg width="92" height="92" viewBox="0 0 92 92">
+        <circle class="track" cx="46" cy="46" r="39"></circle>
+        <circle class="fill" id="colorRing" cx="46" cy="46" r="39"
+                stroke-dasharray="245" stroke-dashoffset="245"></circle>
+      </svg>
+      <div class="num"><b id="colorPct">–</b><span>โทนสีผิว</span></div>
+    </div>
+
     <div class="match">
       <img id="matchImg" alt="">
-      <div class="t"><b id="matchLabel">กำลังวิเคราะห์…</b>รูปในฐานข้อมูลที่เหมือนภาพตรงหน้ามากที่สุด</div>
+      <span>รูปที่เหมือน<br>ที่สุด</span>
     </div>
   </div>
+
+  <div class="pricebar" id="priceBar" style="display:none">
+    <b id="priceText">–</b>
+    <small id="priceSub"></small>
+  </div>
+
+  <p class="lighttip">การตัดพื้นหลังได้ผลดีกับพื้นหลังสีเรียบ (ผ้ากำมะหยี่ พื้นขาว โต๊ะสีเดียว) — ถ้าพื้นหลังลายเยอะ ระบบจะใช้ภาพเต็มแทน · คะแนนโทนสีผิวยังไวต่อแสง ควรส่องใต้แสงขาวสว่างสม่ำเสมอ</p>
 
   <button class="btn secondary" id="stopBtn">หยุดกล้อง / กลับหน้าฐานข้อมูล</button>
 </div>
 
 <p id="status"></p>
 
-<p class="warn">ตัวเลขคือความเหมือนของ "ภาพ" กับฐานข้อมูลเท่านั้น พระเก๊ที่ถอดพิมพ์เหมือนอาจได้คะแนนสูงได้<br>ใช้เป็นการคัดกรองเบื้องต้น ควรให้ผู้ชำนาญตรวจสอบก่อนตัดสินใจเช่าบูชาทุกครั้ง</p>
+<p class="warn">ตัวเลขคือความเหมือนของ "ภาพ" กับฐานข้อมูลเท่านั้น พระเก๊ที่ถอดพิมพ์เหมือนอาจได้คะแนนสูงได้<br>ระบบไม่สามารถยืนยันความเก่าถึงยุคได้ — ใช้คัดกรองเบื้องต้น ควรให้ผู้ชำนาญตรวจสอบก่อนเช่าบูชาทุกครั้ง</p>
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js"></script>
 <script>
 const $ = id => document.getElementById(id);
-const CIRC = 282.7;
+const CIRC = 245;
 const DB_KEY = 'phraRefDB_v1';
-let net = null;          // โมเดลสกัดลักษณะภาพ
-let db = [];             // [{v:[เวกเตอร์], img:thumbnailDataURL}]
+const PROC_VER = 2;        // เวอร์ชันวิธีประมวลผลภาพ (มีตัดพื้นหลัง)
+let net = null;
+let db = [];               // [{v, h, img, p}]
 let stream = null, running = false;
-const work = document.createElement('canvas'); work.width = 224; work.height = 224;
-const wctx = work.getContext('2d');
+const W = 224;
+const work = document.createElement('canvas'); work.width = W; work.height = W;
+const wctx = work.getContext('2d', { willReadFrequently: true });
+
+/* ============================================================
+   ตัดพื้นหลังอัตโนมัติ
+   หลักการ: ดูสีเฉลี่ยตามขอบภาพ (ปกติคือพื้นหลัง) แล้วไล่ลบ
+   พื้นที่สีใกล้เคียงที่ "ลามต่อเนื่องจากขอบ" เข้ามา
+   แทนที่ด้วยสีเทากลาง เหลือแต่องค์พระตรงกลาง
+   คืนค่า mask (1 = พื้นหลัง) หรือ null ถ้าตัดไม่ได้
+   ============================================================ */
+function removeBackground(){
+  const imgData = wctx.getImageData(0, 0, W, W);
+  const d = imgData.data;
+  const TOL = 42;                       // ความต่างสีที่ยังถือว่าเป็นพื้นหลังเดียวกัน
+  const mask = new Uint8Array(W*W);
+  const queue = [];
+
+  // สีเฉลี่ยของขอบภาพ 4 ด้าน (แยกด้านละสี รองรับพื้นหลังไล่เฉดเล็กน้อย)
+  function edgeAvg(pixels){
+    let r=0,g=0,b=0;
+    for (const p of pixels){ r+=d[p*4]; g+=d[p*4+1]; b+=d[p*4+2]; }
+    const n = pixels.length;
+    return [r/n, g/n, b/n];
+  }
+  const top=[], bot=[], lef=[], rig=[];
+  for (let i=0;i<W;i++){
+    top.push(i); bot.push((W-1)*W+i); lef.push(i*W); rig.push(i*W+W-1);
+  }
+  const refs = [edgeAvg(top), edgeAvg(bot), edgeAvg(lef), edgeAvg(rig)];
+
+  function isBg(p){
+    const r=d[p*4], g=d[p*4+1], b=d[p*4+2];
+    for (const c of refs){
+      if (Math.abs(r-c[0])+Math.abs(g-c[1])+Math.abs(b-c[2]) < TOL*3) return true;
+    }
+    return false;
+  }
+
+  // เริ่มไล่จากพิกเซลขอบทุกตัวที่สีเข้าข่ายพื้นหลัง
+  for (const p of [...top,...bot,...lef,...rig]){
+    if (!mask[p] && isBg(p)){ mask[p]=1; queue.push(p); }
+  }
+  // ลามเข้าด้านใน (flood fill)
+  while (queue.length){
+    const p = queue.pop();
+    const x = p % W, y = (p-x)/W;
+    const nb = [];
+    if (x>0) nb.push(p-1);
+    if (x<W-1) nb.push(p+1);
+    if (y>0) nb.push(p-W);
+    if (y<W-1) nb.push(p+W);
+    for (const q of nb){
+      if (!mask[q] && isBg(q)){ mask[q]=1; queue.push(q); }
+    }
+  }
+
+  // นับสัดส่วนพื้นหลังที่ตัดได้
+  let cnt = 0;
+  for (let i=0;i<mask.length;i++) cnt += mask[i];
+  const frac = cnt / mask.length;
+  // ถ้าตัดได้น้อยมาก (พื้นหลังลายเยอะ) หรือตัดเกือบหมดภาพ (สีองค์พระกลืนกับพื้น)
+  // ให้ยกเลิก ใช้ภาพเต็มตามเดิม ปลอดภัยกว่า
+  if (frac < 0.08 || frac > 0.90) return null;
+
+  // แทนพื้นหลังด้วยสีเทากลาง
+  for (let i=0;i<mask.length;i++){
+    if (mask[i]){
+      d[i*4]=120; d[i*4+1]=118; d[i*4+2]=112;
+    }
+  }
+  wctx.putImageData(imgData, 0, 0);
+  return mask;
+}
 
 /* ---------- ฐานข้อมูล ---------- */
-function loadDB(){
+async function loadDB(){
   try { db = JSON.parse(localStorage.getItem(DB_KEY)) || []; } catch(e){ db = []; }
   renderDB();
+  // อัปเกรดรูปเก่าให้ผ่านการตัดพื้นหลังแบบเดียวกับระบบใหม่
+  const needs = db.filter(r => r.p !== PROC_VER);
+  if (needs.length){
+    await ensureNet();
+    let done = 0;
+    for (const r of needs){
+      try {
+        const img = await srcToImage(r.img);
+        wctx.drawImage(img, 0, 0, W, W);
+        const mask = removeBackground();
+        r.v = await embed(work);
+        r.h = colorHist(mask);
+        r.p = PROC_VER;
+      } catch(e){}
+      done++;
+      $('status').textContent = `กำลังอัปเดตฐานข้อมูล ${done}/${needs.length}…`;
+    }
+    saveDB();
+    $('status').textContent = 'อัปเดตฐานข้อมูลเรียบร้อย (แนะนำ: ถ้ามีรูปต้นฉบับ ลองล้างแล้วเพิ่มใหม่จะคมชัดที่สุด)';
+  }
 }
 function saveDB(){
   try { localStorage.setItem(DB_KEY, JSON.stringify(db)); return true; }
@@ -184,10 +343,44 @@ function renderDB(){
   $('count').textContent = db.length;
   $('goBtn').disabled = db.length === 0;
   $('clearBtn').style.display = db.length ? 'block' : 'none';
+  $('backupBtn').style.display = db.length ? 'block' : 'none';
   const t = $('thumbs'); t.innerHTML = '';
   db.slice(-30).reverse().forEach(r => {
-    const im = new Image(); im.src = r.img; t.appendChild(im);
+    const box = document.createElement('div');
+    box.className = 'th';
+    const im = new Image(); im.src = r.img;
+    box.appendChild(im);
+    const pb = document.createElement('span');
+    pb.className = 'pb';
+    pb.textContent = (typeof r.price === 'number') ? r.price.toLocaleString('th-TH') + '฿' : 'ไม่มีราคา';
+    box.appendChild(pb);
+    // แตะรูปเพื่อใส่/แก้ราคา
+    box.addEventListener('click', () => {
+      const cur = (typeof r.price === 'number') ? r.price : '';
+      const ans = prompt('ราคา (บาท) ของรูปนี้ — ใส่ตัวเลขอย่างเดียว, เว้นว่างแล้วกดตกลง = ลบราคา', cur);
+      if (ans === null) return;                     // กดยกเลิก
+      const num = parseFloat(String(ans).replace(/[, ]/g,''));
+      if (ans.trim() === ''){ delete r.price; }
+      else if (isFinite(num) && num >= 0){ r.price = num; }
+      else { $('status').textContent = 'ราคาต้องเป็นตัวเลขเท่านั้น'; return; }
+      saveDB(); renderDB();
+    });
+    t.appendChild(box);
   });
+}
+
+/* ---------- เกณฑ์ราคา ---------- */
+const LIMIT_KEY = 'phraPriceLimit';
+try {
+  const savedLimit = localStorage.getItem(LIMIT_KEY);
+  if (savedLimit) $('priceLimit').value = savedLimit;
+} catch(e){}
+$('priceLimit').addEventListener('change', () => {
+  try { localStorage.setItem(LIMIT_KEY, $('priceLimit').value); } catch(e){}
+});
+function getLimit(){
+  const v = parseFloat($('priceLimit').value);
+  return (isFinite(v) && v > 0) ? v : null;
 }
 
 /* ---------- โหลดโมเดล ---------- */
@@ -198,11 +391,11 @@ async function ensureNet(){
   $('status').textContent = '';
 }
 
-/* ---------- คำนวณเวกเตอร์ลักษณะภาพ ---------- */
+/* ---------- เวกเตอร์พิมพ์ทรง ---------- */
 async function embed(source){
   const t = tf.tidy(() => {
     const e = net.infer(source, true);
-    return tf.div(e, tf.norm(e));           // ปรับความยาวเวกเตอร์เป็น 1
+    return tf.div(e, tf.norm(e));
   });
   const arr = Array.from(await t.data()).map(x => Math.round(x*1000)/1000);
   t.dispose();
@@ -213,9 +406,47 @@ function cosine(a, b){
   for (let i = 0; i < a.length; i++) s += a[i]*b[i];
   return s;
 }
-/* แปลงค่าความเหมือน (cosine) เป็น % ที่อ่านง่าย: 0.5→0%, 1.0→100% */
-function toPct(c){
+function shapeToPct(c){
   return Math.max(0, Math.min(100, Math.round((c - 0.5) / 0.5 * 100)));
+}
+
+/* ---------- ฮิสโตแกรมสี (โทนสีผิว) ----------
+   นับการกระจายสีเฉพาะพิกเซลที่ "ไม่ใช่พื้นหลัง" */
+function colorHist(mask){
+  const M = 16;
+  const dImg = wctx.getImageData(0, 0, W, W);
+  const d = dImg.data;
+  const bins = new Array(12*4*4).fill(0);
+  let n = 0;
+  for (let y = M; y < W-M; y += 2){
+    for (let x = M; x < W-M; x += 2){
+      const p = y*W + x;
+      if (mask && mask[p]) continue;               // ข้ามพื้นหลัง
+      const i = p*4;
+      const r = d[i]/255, g = d[i+1]/255, b = d[i+2]/255;
+      const mx = Math.max(r,g,b), mn = Math.min(r,g,b), df = mx-mn;
+      let h = 0;
+      if (df > 0){
+        if (mx === r) h = ((g-b)/df) % 6;
+        else if (mx === g) h = (b-r)/df + 2;
+        else h = (r-g)/df + 4;
+        h = (h*60+360) % 360;
+      }
+      const s = mx === 0 ? 0 : df/mx;
+      bins[Math.min(11,Math.floor(h/30))*16 + Math.min(3,Math.floor(s*4))*4 + Math.min(3,Math.floor(mx*4))]++;
+      n++;
+    }
+  }
+  if (!n) return bins;
+  return bins.map(x => Math.round(x/n*1000)/1000);
+}
+function histSim(a, b){
+  let s = 0;
+  for (let i = 0; i < a.length; i++) s += Math.min(a[i], b[i]);
+  return s;
+}
+function colorToPct(c){
+  return Math.max(0, Math.min(100, Math.round(c * 100)));
 }
 
 /* ---------- เพิ่มรูปพระแท้ ---------- */
@@ -223,18 +454,30 @@ $('addBtn').addEventListener('click', () => $('fileInput').click());
 $('fileInput').addEventListener('change', async e => {
   const files = [...e.target.files];
   if (!files.length) return;
+  // ถามราคาหนึ่งครั้งต่อชุด (ปกติเพิ่มทีละรุ่น)
+  let batchPrice = null;
+  const ans = prompt(`ราคา (บาท) ของพระในรูปชุดนี้ ${files.length} รูป\nใส่ตัวเลขอย่างเดียว เช่น 10000\nเว้นว่างถ้ายังไม่ระบุ (มาแตะรูปใส่ทีหลังได้)`, '');
+  if (ans !== null && ans.trim() !== ''){
+    const num = parseFloat(String(ans).replace(/[, ]/g,''));
+    if (isFinite(num) && num >= 0) batchPrice = num;
+  }
   $('addBtn').disabled = true;
   await ensureNet();
   let done = 0;
   for (const f of files){
     try {
       const img = await fileToImage(f);
-      wctx.drawImage(img, 0, 0, 224, 224);
-      const v = await embed(work);
-      // ย่อรูปเก็บไว้โชว์ตอนจับคู่
+      // เก็บรูปย่อจากภาพต้นฉบับ (ก่อนตัดพื้นหลัง) ไว้โชว์
       const th = document.createElement('canvas'); th.width = 96; th.height = 96;
       th.getContext('2d').drawImage(img, 0, 0, 96, 96);
-      db.push({ v, img: th.toDataURL('image/jpeg', 0.7) });
+      // ประมวลผลบนภาพที่ตัดพื้นหลังแล้ว
+      wctx.drawImage(img, 0, 0, W, W);
+      const mask = removeBackground();
+      const v = await embed(work);
+      const h = colorHist(mask);
+      const rec = { v, h, img: th.toDataURL('image/jpeg', 0.7), p: PROC_VER };
+      if (batchPrice !== null) rec.price = batchPrice;
+      db.push(rec);
     } catch(err){ /* ข้ามไฟล์ที่อ่านไม่ได้ */ }
     done++;
     $('status').textContent = `กำลังประมวลผลรูป ${done}/${files.length}…`;
@@ -252,11 +495,63 @@ function fileToImage(file){
     img.src = URL.createObjectURL(file);
   });
 }
+function srcToImage(src){
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => res(img);
+    img.onerror = rej;
+    img.src = src;
+  });
+}
 
 $('clearBtn').addEventListener('click', () => {
   if (!confirm('ลบรูปพระแท้ทั้งหมดออกจากฐานข้อมูล?')) return;
   db = []; saveDB(); renderDB();
   $('status').textContent = '';
+});
+
+/* ---------- สำรองข้อมูล / กู้คืน ---------- */
+$('backupBtn').addEventListener('click', () => {
+  const d = new Date();
+  const stamp = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+  const blob = new Blob([JSON.stringify(db)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `song-phra-backup-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  $('status').textContent = `สำรองข้อมูล ${db.length} รูปเป็นไฟล์เรียบร้อย — เก็บไฟล์นี้ไว้ใน Google Drive จะปลอดภัยที่สุด`;
+});
+
+$('restoreBtn').addEventListener('click', () => $('restoreInput').click());
+$('restoreInput').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    const text = await f.text();
+    const data = JSON.parse(text);
+    if (!Array.isArray(data)) throw new Error('bad');
+    // รับเฉพาะรายการที่มีข้อมูลครบ และไม่เพิ่มรูปที่มีอยู่แล้วซ้ำ
+    const existing = new Set(db.map(r => r.img));
+    let added = 0, skipped = 0;
+    for (const r of data){
+      if (r && Array.isArray(r.v) && typeof r.img === 'string'){
+        if (existing.has(r.img)){ skipped++; continue; }
+        db.push(r); existing.add(r.img); added++;
+      }
+    }
+    saveDB(); renderDB();
+    $('status').textContent = skipped
+      ? `กู้คืนเรียบร้อย เพิ่ม ${added} รูป (ข้าม ${skipped} รูปที่มีอยู่แล้ว) รวมทั้งหมด ${db.length} รูป`
+      : `กู้คืนเรียบร้อย เพิ่ม ${added} รูป รวมทั้งหมด ${db.length} รูป`;
+    // ถ้าไฟล์สำรองมาจากเวอร์ชันเก่า ให้ระบบอัปเดตการประมวลผลต่อเอง
+    const needsOld = db.some(r => r.p !== PROC_VER);
+    if (needsOld) loadDB();
+  } catch(err){
+    $('status').textContent = 'อ่านไฟล์สำรองไม่ได้ — ตรวจดูว่าเลือกไฟล์ song-phra-backup ที่ดาวน์โหลดจากแอปนี้';
+  }
+  e.target.value = '';
 });
 
 /* ---------- กล้อง ---------- */
@@ -285,31 +580,69 @@ async function start(){
   loop();
 }
 
+function setRing(ringId, pctId, pct){
+  const numEl = $(pctId);
+  numEl.textContent = pct + '%';
+  // ต่ำกว่า 70 = แดง, 70 ขึ้นไป = เขียว (ทั้งตัวเลขและวง)
+  const color = pct >= 70 ? 'var(--high)' : 'var(--low)';
+  numEl.style.color = color;
+  const ring = $(ringId);
+  ring.style.stroke = color;
+  ring.style.strokeDashoffset = CIRC - (CIRC * pct / 100);
+}
+
+function showPrice(rec){
+  const bar = $('priceBar'), txt = $('priceText'), sub = $('priceSub');
+  bar.style.display = 'block';
+  if (typeof rec.price === 'number'){
+    txt.textContent = rec.price.toLocaleString('th-TH') + ' บาท';
+    const lim = getLimit();
+    if (lim !== null){
+      const ok = rec.price <= lim;
+      txt.style.color = ok ? 'var(--high)' : 'var(--low)';
+      sub.textContent = ok
+        ? `ไม่เกินเกณฑ์ที่ตั้งไว้ (${lim.toLocaleString('th-TH')} บาท)`
+        : `เกินเกณฑ์ที่ตั้งไว้ (${lim.toLocaleString('th-TH')} บาท)`;
+    } else {
+      txt.style.color = 'var(--gold)';
+      sub.textContent = 'ราคาของรูปที่จับคู่ได้ (ยังไม่ได้ตั้งเกณฑ์ราคา)';
+    }
+  } else {
+    txt.textContent = 'ไม่ได้ระบุราคา';
+    txt.style.color = 'var(--muted)';
+    sub.textContent = 'แตะรูปในหน้าฐานข้อมูลเพื่อใส่ราคา';
+  }
+}
+
 async function loop(){
   if (!running) return;
   const v = $('cam');
-  if (v.videoWidth){
-    // ตัดภาพกลางจอเป็นสี่เหลี่ยมจัตุรัสเหมือนที่เห็นในกรอบ
+  if (v.videoWidth && db.length){
     const s = Math.min(v.videoWidth, v.videoHeight);
-    wctx.drawImage(v, (v.videoWidth-s)/2, (v.videoHeight-s)/2, s, s, 0, 0, 224, 224);
+    wctx.drawImage(v, (v.videoWidth-s)/2, (v.videoHeight-s)/2, s, s, 0, 0, W, W);
+    const mask = removeBackground();
+
+    // โชว์ภาพหลังตัดพื้นหลังที่มุมจอ ให้เห็นว่าระบบมองอะไรอยู่
+    $('seen').getContext('2d').drawImage(work, 0, 0);
+
     const q = await embed(work);
+    const qh = colorHist(mask);
+
     let best = -1, bi = -1;
     for (let i = 0; i < db.length; i++){
       const c = cosine(q, db[i].v);
       if (c > best){ best = c; bi = i; }
     }
     if (bi >= 0){
-      const pct = toPct(best);
-      $('pct').textContent = pct + '%';
+      setRing('shapeRing', 'shapePct', shapeToPct(best));
+      if (db[bi].h){
+        setRing('colorRing', 'colorPct', colorToPct(histSim(qh, db[bi].h)));
+      }
       $('matchImg').src = db[bi].img;
-      $('matchLabel').textContent =
-        pct >= 80 ? 'เหมือนมาก' : pct >= 60 ? 'ค่อนข้างเหมือน' : pct >= 40 ? 'เหมือนบางส่วน' : 'ไม่ค่อยเหมือน';
-      const ring = $('ringFill');
-      ring.style.stroke = pct >= 80 ? 'var(--high)' : pct >= 55 ? 'var(--gold)' : 'var(--low)';
-      ring.style.strokeDashoffset = CIRC - (CIRC * pct / 100);
+      showPrice(db[bi]);
     }
   }
-  setTimeout(loop, 300);   // วิเคราะห์ ~3 ครั้งต่อวินาที ประหยัดแบตกว่า
+  setTimeout(loop, 300);
 }
 
 function stop(){
