@@ -107,6 +107,18 @@
     background:rgba(21,16,7,.72);padding:2px 7px;border-radius:7px;
   }
 
+  /* ---- แถบซูม ---- */
+  .zoomrow{
+    display:flex;align-items:center;gap:12px;width:100%;
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:10px 16px;margin-top:10px;
+  }
+  .zoomrow label{font-size:.8rem;color:var(--muted);flex-shrink:0}
+  .zoomrow input[type=range]{
+    flex:1;accent-color:var(--gold);height:26px;
+  }
+  .zoomrow b{font-size:.9rem;color:var(--gold);width:44px;text-align:right;flex-shrink:0}
+
   .verdict{
     display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;
     background:var(--surface);border:1px solid var(--line);border-radius:18px;
@@ -159,8 +171,8 @@
   <div class="dbcount"><b id="count">0</b><span>รูปพระแท้ในฐานข้อมูล</span></div>
   <div id="thumbs"></div>
   <input type="file" id="fileInput" accept="image/*" multiple>
-  <button class="btn" id="goBtn" disabled>เริ่มส่องพระ</button>
   <button class="btn" id="addBtn">+ เพิ่มรูปพระแท้</button>
+  <button class="btn" id="goBtn" disabled>เริ่มส่องพระ</button>
   <button class="btn secondary" id="backupBtn" style="display:none">⬇ สำรองฐานข้อมูลเป็นไฟล์</button>
   <input type="file" id="restoreInput" accept=".json,application/json" style="display:none">
   <button class="btn secondary" id="restoreBtn">⬆ กู้คืนจากไฟล์สำรอง</button>
@@ -181,6 +193,12 @@
     <span class="corner c3"></span><span class="corner c4"></span>
     <span class="seenlabel">ภาพที่ระบบเห็น</span>
     <canvas id="seen" width="224" height="224"></canvas>
+  </div>
+
+  <div class="zoomrow">
+    <label>ซูม</label>
+    <input type="range" id="zoomSlider" min="1" max="4" step="0.1" value="1">
+    <b id="zoomVal">1.0x</b>
   </div>
 
   <div class="verdict">
@@ -213,7 +231,7 @@
     <small id="priceSub"></small>
   </div>
 
-  <p class="lighttip">การตัดพื้นหลังได้ผลดีกับพื้นหลังสีเรียบ (ผ้ากำมะหยี่ พื้นขาว โต๊ะสีเดียว) — ถ้าพื้นหลังลายเยอะ ระบบจะใช้ภาพเต็มแทน · คะแนนโทนสีผิวยังไวต่อแสง ควรส่องใต้แสงขาวสว่างสม่ำเสมอ</p>
+  <p class="lighttip">ระบบครอปเฉพาะองค์พระให้อัตโนมัติก่อนเทียบ ไม่ว่าจะถ่ายใกล้ไกลแค่ไหน — แถบซูมช่วยตอนองค์พระอยู่ไกลจนเล็กเกินไปในจอเท่านั้น ไม่จำเป็นต้องซูมให้พอดีเป๊ะ<br>การตัดพื้นหลังได้ผลดีกับพื้นหลังสีเรียบ (ผ้ากำมะหยี่ พื้นขาว โต๊ะสีเดียว) · คะแนนโทนสีผิวยังไวต่อแสง ควรส่องใต้แสงขาวสว่างสม่ำเสมอ</p>
 
   <button class="btn secondary" id="stopBtn">หยุดกล้อง / กลับหน้าฐานข้อมูล</button>
 </div>
@@ -228,7 +246,7 @@
 const $ = id => document.getElementById(id);
 const CIRC = 245;
 const DB_KEY = 'phraRefDB_v1';
-const PROC_VER = 2;        // เวอร์ชันวิธีประมวลผลภาพ (มีตัดพื้นหลัง)
+const PROC_VER = 3;        // เวอร์ชันวิธีประมวลผลภาพ (ตัดพื้นหลัง + ครอปอัตโนมัติ)
 let net = null;
 let db = [];               // [{v, h, img, p}]
 let stream = null, running = false;
@@ -307,11 +325,78 @@ function removeBackground(){
   return mask;
 }
 
+/* ============================================================
+   หากรอบสี่เหลี่ยมที่พอดีกับ "องค์พระ" จาก mask ตัดพื้นหลัง
+   (mask ค่า 1 = พื้นหลัง, 0 = องค์พระ) เผื่อขอบไว้เล็กน้อย
+   คืนค่า {x,y,w,h} เป็นพิกัดในกรอบ WxW หรือ null ถ้าหาไม่ได้
+   ============================================================ */
+function getBBox(mask){
+  let minX=W, minY=W, maxX=-1, maxY=-1;
+  for (let y=0; y<W; y++){
+    const row = y*W;
+    for (let x=0; x<W; x++){
+      if (!mask[row+x]){
+        if (x<minX) minX=x; if (x>maxX) maxX=x;
+        if (y<minY) minY=y; if (y>maxY) maxY=y;
+      }
+    }
+  }
+  if (maxX < 0) return null;
+  const w = maxX-minX+1, h = maxY-minY+1;
+  const mx = w*0.12, my = h*0.12;         // เผื่อขอบ 12% กันตัดองค์พระขาด
+  const x0 = Math.max(0, minX-mx), y0 = Math.max(0, minY-my);
+  const x1 = Math.min(W, maxX+1+mx), y1 = Math.min(W, maxY+1+my);
+  return { x:x0, y:y0, w:x1-x0, h:y1-y0 };
+}
+
+/* ============================================================
+   วิเคราะห์รูปภาพ (จากไฟล์รูป): วาดเต็มเฟรมก่อน หาองค์พระ
+   แล้วครอปเฉพาะองค์พระมาขยายเต็มภาพอีกรอบก่อนคำนวณจริง
+   เพื่อให้ไม่ว่ารูปต้นฉบับจะซูมใกล้/ไกลแค่ไหน ผลลัพธ์เทียบกันได้
+   ============================================================ */
+async function analyzeImageSource(img){
+  wctx.drawImage(img, 0, 0, W, W);
+  let mask = removeBackground();
+  if (mask){
+    const box = getBBox(mask);
+    if (box && box.w*box.h < 0.85*W*W){
+      const sx = box.x/W*img.width, sy = box.y/W*img.height;
+      const sw = box.w/W*img.width, sh = box.h/W*img.height;
+      wctx.clearRect(0, 0, W, W);
+      wctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, W);
+      mask = removeBackground();
+    }
+  }
+  const v = await embed(work);
+  const h = colorHist(mask);
+  return { v, h };
+}
+
+/* วิเคราะห์เฟรมจากกล้องสด ด้วยหลักการเดียวกัน */
+async function analyzeVideoFrame(video, baseX, baseY, s){
+  wctx.drawImage(video, baseX, baseY, s, s, 0, 0, W, W);
+  let mask = removeBackground();
+  if (mask){
+    const box = getBBox(mask);
+    if (box && box.w*box.h < 0.85*W*W){
+      const sx = baseX + box.x/W*s, sy = baseY + box.y/W*s;
+      const sw = box.w/W*s, sh = box.h/W*s;
+      wctx.clearRect(0, 0, W, W);
+      wctx.drawImage(video, sx, sy, sw, sh, 0, 0, W, W);
+      mask = removeBackground();
+    }
+  }
+  $('seen').getContext('2d').drawImage(work, 0, 0);
+  const q = await embed(work);
+  const qh = colorHist(mask);
+  return { q, qh };
+}
+
 /* ---------- ฐานข้อมูล ---------- */
 async function loadDB(){
   try { db = JSON.parse(localStorage.getItem(DB_KEY)) || []; } catch(e){ db = []; }
   renderDB();
-  // อัปเกรดรูปเก่าให้ผ่านการตัดพื้นหลังแบบเดียวกับระบบใหม่
+  // อัปเกรดรูปเก่าให้ผ่านการตัดพื้นหลัง+ครอปอัตโนมัติแบบเดียวกับระบบใหม่
   const needs = db.filter(r => r.p !== PROC_VER);
   if (needs.length){
     await ensureNet();
@@ -319,10 +404,8 @@ async function loadDB(){
     for (const r of needs){
       try {
         const img = await srcToImage(r.img);
-        wctx.drawImage(img, 0, 0, W, W);
-        const mask = removeBackground();
-        r.v = await embed(work);
-        r.h = colorHist(mask);
+        const { v, h } = await analyzeImageSource(img);
+        r.v = v; r.h = h;
         r.p = PROC_VER;
       } catch(e){}
       done++;
@@ -470,11 +553,8 @@ $('fileInput').addEventListener('change', async e => {
       // เก็บรูปย่อจากภาพต้นฉบับ (ก่อนตัดพื้นหลัง) ไว้โชว์
       const th = document.createElement('canvas'); th.width = 96; th.height = 96;
       th.getContext('2d').drawImage(img, 0, 0, 96, 96);
-      // ประมวลผลบนภาพที่ตัดพื้นหลังแล้ว
-      wctx.drawImage(img, 0, 0, W, W);
-      const mask = removeBackground();
-      const v = await embed(work);
-      const h = colorHist(mask);
+      // ประมวลผล: ตัดพื้นหลัง + ครอปเฉพาะองค์พระอัตโนมัติ ก่อนคำนวณ
+      const { v, h } = await analyzeImageSource(img);
       const rec = { v, h, img: th.toDataURL('image/jpeg', 0.7), p: PROC_VER };
       if (batchPrice !== null) rec.price = batchPrice;
       db.push(rec);
@@ -558,6 +638,14 @@ $('restoreInput').addEventListener('change', async e => {
 $('goBtn').addEventListener('click', start);
 $('stopBtn').addEventListener('click', stop);
 
+/* ---------- ซูม ---------- */
+let zoom = 1;
+$('zoomSlider').addEventListener('input', () => {
+  zoom = parseFloat($('zoomSlider').value);
+  $('zoomVal').textContent = zoom.toFixed(1) + 'x';
+  $('cam').style.transform = `scale(${zoom})`;   // ขยายภาพที่เห็นบนจอ
+});
+
 async function start(){
   await ensureNet();
   $('status').textContent = 'กำลังเปิดกล้อง… (กดอนุญาตใช้กล้องเมื่อระบบถาม)';
@@ -618,15 +706,10 @@ async function loop(){
   if (!running) return;
   const v = $('cam');
   if (v.videoWidth && db.length){
-    const s = Math.min(v.videoWidth, v.videoHeight);
-    wctx.drawImage(v, (v.videoWidth-s)/2, (v.videoHeight-s)/2, s, s, 0, 0, W, W);
-    const mask = removeBackground();
-
-    // โชว์ภาพหลังตัดพื้นหลังที่มุมจอ ให้เห็นว่าระบบมองอะไรอยู่
-    $('seen').getContext('2d').drawImage(work, 0, 0);
-
-    const q = await embed(work);
-    const qh = colorHist(mask);
+    // ตัดภาพกลางจอตามระดับซูม แล้วครอปเฉพาะองค์พระอัตโนมัติต่ออีกชั้น
+    const s = Math.min(v.videoWidth, v.videoHeight) / zoom;
+    const baseX = (v.videoWidth-s)/2, baseY = (v.videoHeight-s)/2;
+    const { q, qh } = await analyzeVideoFrame(v, baseX, baseY, s);
 
     let best = -1, bi = -1;
     for (let i = 0; i < db.length; i++){
