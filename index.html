@@ -379,7 +379,7 @@
       <b id="focusPct">–</b>
       <small>ความใกล้เคียงเฉพาะจุดนี้</small>
     </div>
-    <p class="hint" style="text-align:center;margin-top:4px">ตำแหน่งจุดเทียบแบบสัดส่วน — ถ้าสองรูปถ่ายมุมต่างกันมาก จุดอาจไม่ตรงเป๊ะ ลองกดค้างซ้ำใกล้ๆ จุดเดิมเพื่อขยับได้</p>
+    <p class="hint" style="text-align:center;margin-top:4px">ระบบปรับขนาดองค์พระในภาพให้เท่ากัน และปรับความสว่าง/โทนสีให้ใกล้เคียงกันก่อนเทียบอัตโนมัติ (ไม่ว่ารูปต้นฉบับจะซูมใกล้ไกลหรือแสงต่างกันแค่ไหน) แล้วค่อยคำนวณ % — ตำแหน่งจุดยังเทียบแบบสัดส่วน ถ้าสองรูปถ่ายมุมต่างกันมาก จุดอาจไม่ตรงเป๊ะ ลองกดค้างซ้ำใกล้ๆ จุดเดิมเพื่อขยับได้</p>
   </div>
 
   <div id="ovWrap">
@@ -612,7 +612,10 @@ async function analyzeVideoFrame(video, baseX, baseY, s){
 }
 
 /* ============ ครอปเพื่อการ "เทียบด้วยตา" (คงสีจริง ไม่ทาเทา) ============
-   รับ source (img/canvas/video-region ที่วาดเป็น canvas แล้ว) คืน canvas ครอปพอดีองค์ */
+   รับ source (img/canvas/video-region ที่วาดเป็น canvas แล้ว) คืน canvas ครอปพอดีองค์
+   บังคับใช้ผืนภาพขนาดคงที่ (COMPARE_SIZE) เท่ากันทุกรูปเสมอ เพื่อให้องค์พระถูกสเกล
+   ให้มีขนาดเทียบเท่ากันจริง ไม่ว่ารูปต้นฉบับจะความละเอียด/ระยะซูมต่างกันแค่ไหน */
+const COMPARE_SIZE = 900;
 function cropForCompare(source){
   const sw0 = source.width || source.videoWidth;
   const sh0 = source.height || source.videoHeight;
@@ -628,11 +631,11 @@ function cropForCompare(source){
   }
   const side = Math.max(sw, sh);
   const out = document.createElement('canvas');
-  const S = Math.min(1024, Math.max(400, Math.round(side)));
+  const S = COMPARE_SIZE;                 // ขนาดผืนภาพคงที่ เท่ากันทุกรูปเสมอ
   out.width = S; out.height = S;
   const octx = out.getContext('2d');
   octx.fillStyle = '#1A1206'; octx.fillRect(0, 0, S, S);
-  // วางกึ่งกลางแบบรักษาสัดส่วน
+  // สเกลให้ "ด้านยาวสุดขององค์พระ" เท่ากับ S พอดีทุกรูป = ขนาดองค์พระเทียบเท่ากันจริง
   const scale = S / side;
   const dw = sw*scale, dh = sh*scale;
   octx.drawImage(source, sx, sy, sw, sh, (S-dw)/2, (S-dh)/2, dw, dh);
@@ -1437,10 +1440,35 @@ function cropFocusPatch(src, nx, ny){
   out.getContext('2d').drawImage(src, px, py, size, size, 0, 0, 224, 224);
   return out;
 }
+/* ปรับสมดุลแสง/สีของแพทช์ให้อยู่ในมาตรฐานเดียวกัน (ทำแยกทีละช่องสี R,G,B)
+   เพื่อลดผลจากแสงคนละแหล่ง/คนละโทนตอนถ่ายภาพ ก่อนเทียบรอย/เนื้อเกิน */
+function normalizeLighting(src){
+  const w = src.width, h = src.height;
+  const out = document.createElement('canvas'); out.width = w; out.height = h;
+  const octx = out.getContext('2d');
+  octx.drawImage(src, 0, 0);
+  const imgData = octx.getImageData(0, 0, w, h);
+  const d = imgData.data;
+  const n = d.length/4;
+  const targetMean = 128, targetStd = 48;
+  for (let c = 0; c < 3; c++){
+    let sum = 0, sumSq = 0;
+    for (let i = c; i < d.length; i += 4){ sum += d[i]; sumSq += d[i]*d[i]; }
+    const mean = sum/n;
+    const std = Math.sqrt(Math.max(sumSq/n - mean*mean, 1));
+    const scale = targetStd/std;
+    for (let i = c; i < d.length; i += 4){
+      d[i] = Math.max(0, Math.min(255, (d[i]-mean)*scale + targetMean));
+    }
+  }
+  octx.putImageData(imgData, 0, 0);
+  return out;
+}
 async function focusOnPoint(nx, ny){
   if (!masterCrop) return;
   $('focusPanel').style.display = 'block';
-  const mPatch = cropFocusPatch(masterCrop, nx, ny);
+  const mPatchRaw = cropFocusPatch(masterCrop, nx, ny);
+  const mPatch = normalizeLighting(mPatchRaw);
   $('cvFocusMaster').getContext('2d').drawImage(mPatch, 0, 0, 320, 320);
   if (!suspectCrop){
     $('cvFocusSuspect').getContext('2d').clearRect(0, 0, 320, 320);
@@ -1448,7 +1476,8 @@ async function focusOnPoint(nx, ny){
     $('focusPct').style.color = 'var(--muted)';
     return;
   }
-  const sPatch = cropFocusPatch(suspectCrop, nx, ny);
+  const sPatchRaw = cropFocusPatch(suspectCrop, nx, ny);
+  const sPatch = normalizeLighting(sPatchRaw);
   $('cvFocusSuspect').getContext('2d').drawImage(sPatch, 0, 0, 320, 320);
   try {
     await ensureNet();
