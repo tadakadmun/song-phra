@@ -87,6 +87,16 @@
   .limitrow input:focus{border-color:var(--gold)}
   .limitrow span{font-size:.8rem;color:var(--muted)}
 
+  .pastezone{
+    width:100%;margin-top:14px;padding:15px;border-radius:12px;
+    border:1px dashed #4A3A24;background:transparent;color:var(--muted);
+    font-family:'Noto Sans Thai',sans-serif;font-size:.9rem;text-align:center;
+    outline:none;-webkit-user-select:text;user-select:text;caret-color:transparent;
+    min-height:22px;cursor:text;line-height:1.5;
+  }
+  .pastezone:empty:before{content:attr(data-placeholder)}
+  .pastezone:focus{border-color:var(--gold);color:var(--text)}
+
   /* ---- กล้อง ---- */
   .scope{
     position:relative;width:100%;aspect-ratio:1/1;
@@ -235,7 +245,7 @@
     <div id="thumbs"></div>
     <input type="file" id="fileInput" class="hiddenInput" accept="image/*" multiple>
     <button class="btn" id="addBtn">+ เพิ่มรูปพระแท้</button>
-    <button class="btn secondary" id="pasteBtn">📋 วางรูปที่คัดลอกจากเว็บ</button>
+    <div class="pastezone" id="pasteZone" contenteditable="true" spellcheck="false" data-placeholder="แตะค้างตรงนี้ แล้วเลือก “วาง” เพื่อเพิ่มรูปจากเว็บ"></div>
     <button class="btn" id="goBtn" disabled>เริ่มส่องพระ</button>
     <button class="btn" id="compareBtn">🔍 เทียบตำหนิ</button>
     <button class="btn secondary" id="backupBtn" style="display:none">⬇ สำรองฐานข้อมูลเป็นไฟล์</button>
@@ -330,6 +340,7 @@
     <button id="tabOverlay">ภาพซ้อน</button>
     <button id="tabPins">หมุดตำหนิ</button>
   </div>
+  <p class="hint" style="text-align:center;margin:-4px 0 0">กดค้างตรงจุดที่สงสัยบนรูปฝั่งไหนก็ได้ เพื่อซูมเทียบเฉพาะจุดพร้อมดู % ความใกล้เคียง</p>
 
   <div class="dual" id="dualWrap">
     <div class="col">
@@ -340,6 +351,24 @@
       <canvas id="cvSuspect" width="600" height="600"></canvas>
       <span class="cl">องค์ที่ตรวจสอบ</span>
     </div>
+  </div>
+
+  <div id="focusPanel" style="display:none;width:100%">
+    <div class="dual" style="margin-top:10px">
+      <div class="col">
+        <canvas id="cvFocusMaster" width="320" height="320"></canvas>
+        <span class="cl">จุดที่กดค้าง (องค์ครู)</span>
+      </div>
+      <div class="col">
+        <canvas id="cvFocusSuspect" width="320" height="320"></canvas>
+        <span class="cl">จุดที่กดค้าง (องค์ตรวจสอบ)</span>
+      </div>
+    </div>
+    <div class="pricebar" style="margin-top:8px">
+      <b id="focusPct">–</b>
+      <small>ความใกล้เคียงเฉพาะจุดนี้</small>
+    </div>
+    <p class="hint" style="text-align:center;margin-top:4px">ตำแหน่งจุดเทียบแบบสัดส่วน — ถ้าสองรูปถ่ายมุมต่างกันมาก จุดอาจไม่ตรงเป๊ะ ลองกดค้างซ้ำใกล้ๆ จุดเดิมเพื่อขยับได้</p>
   </div>
 
   <div id="ovWrap">
@@ -807,39 +836,42 @@ $('fileInput').addEventListener('change', async e => {
   e.target.value = '';
 });
 
-/* 📋 วางรูปที่คัดลอกจากเว็บ (กดค้างที่รูปบนเว็บ → คัดลอก/Copy Image → มากดปุ่มนี้) */
-$('pasteBtn').addEventListener('click', async () => {
-  if (!navigator.clipboard || !navigator.clipboard.read){
-    $('status').textContent = 'เบราว์เซอร์นี้ไม่รองรับการวางรูปโดยตรง — ใช้วิธีกดค้างที่รูปบนเว็บ เลือก "บันทึกรูปภาพ" แล้วกด + เพิ่มรูปพระแท้แทน';
+/* 📋 วางรูปที่คัดลอกจากเว็บ — ใช้ paste event บนกล่อง contenteditable
+   (เสถียรกว่า clipboard.read() มากบน Safari/Chrome มือถือ) */
+$('pasteZone').addEventListener('paste', async (e) => {
+  e.preventDefault();
+  const cd = e.clipboardData || window.clipboardData;
+  let blob = null;
+  if (cd && cd.items){
+    for (const item of cd.items){
+      if (item.type && item.type.indexOf('image') !== -1){ blob = item.getAsFile(); break; }
+    }
+  }
+  if (!blob && cd && cd.files && cd.files.length){
+    for (const f of cd.files){ if (f.type.indexOf('image') !== -1){ blob = f; break; } }
+  }
+  $('pasteZone').innerHTML = '';
+  if (!blob){
+    $('status').textContent = 'ไม่พบรูปในคลิปบอร์ด — ต้องกดค้างที่รูปบนเว็บแล้วเลือก "คัดลอกรูปภาพ / Copy Image" (ไม่ใช่คัดลอกลิงก์) ก่อนมาวาง';
     return;
   }
   try {
-    const items = await navigator.clipboard.read();
-    let blob = null;
-    for (const it of items){
-      const t = it.types.find(x => x.startsWith('image/'));
-      if (t){ blob = await it.getType(t); break; }
-    }
-    if (!blob){
-      $('status').textContent = 'ไม่พบรูปในคลิปบอร์ด — กดค้างที่รูปบนเว็บแล้วเลือก "คัดลอก / Copy Image" ก่อน แล้วค่อยกดปุ่มนี้';
-      return;
-    }
     const img = await fileToImage(blob);
     const nameAns = prompt('ตั้งชื่อรุ่นของรูปนี้ (ใช้แสดงในหน้าเทียบตำหนิ)', 'พระแท้จากเว็บ');
     if (nameAns === null) return;
     const name = nameAns.trim() || 'พระแท้จากเว็บ';
     const price = askPrice('ราคา (บาท) ถ้ามี — เว้นว่างถ้ายังไม่ระบุ');
-    $('pasteBtn').disabled = true;
     $('status').textContent = 'กำลังประมวลผลรูป…';
     await ensureNet();
     await ingestImage(img, name, price);
     saveDB(); renderDB(); renderMasters();
     $('status').textContent = `เพิ่มรูป "${name}" จากคลิปบอร์ดเรียบร้อย — รวมทั้งหมด ${db.length} รูป`;
-  } catch(e){
-    $('status').textContent = 'วางรูปไม่สำเร็จ — ตอนกดปุ่มถ้ามีกล่อง "วาง/Paste" เด้งขึ้น ต้องกดอนุญาตด้วย หรือใช้วิธีบันทึกรูปลงเครื่องแล้วเพิ่มตามปกติ';
+  } catch(err){
+    $('status').textContent = 'ประมวลผลรูปไม่สำเร็จ — ลองบันทึกรูปลงเครื่องแล้วกด + เพิ่มรูปพระแท้แทน';
   }
-  $('pasteBtn').disabled = false;
 });
+/* กันไม่ให้พิมพ์ข้อความเข้ากล่องนี้โดยไม่ตั้งใจ (ไว้รับแค่การวางรูปเท่านั้น) */
+$('pasteZone').addEventListener('keydown', e => e.preventDefault());
 function fileToImage(file){
   return new Promise((res, rej) => {
     const img = new Image();
@@ -1126,6 +1158,7 @@ async function openWorkspace(m){
   $('wsZoom').value = 1; $('wsZoomVal').textContent = '1.0x';
   $('opSlider').value = 50; $('opVal').textContent = '50%';
   $('useCapBtn').style.display = sessionSuspect ? 'block' : 'none';
+  $('focusPanel').style.display = 'none';
   setMode('dual');
   showPage('pgCompare');
   $('status').textContent = suspectCrop ? '' : 'ยังไม่มีรูปองค์ที่ตรวจสอบ — กดปุ่มด้านล่างเพื่อเลือกรูป หรือกลับไปถ่ายจากหน้าส่อง';
@@ -1166,6 +1199,7 @@ function setMode(m){
   $('dualWrap').style.display = (m==='dual' || m==='pins') ? 'flex' : 'none';
   $('ovWrap').style.display = m==='overlay' ? 'block' : 'none';
   $('pinPanel').style.display = m==='pins' ? 'block' : 'none';
+  if (m === 'overlay') $('focusPanel').style.display = 'none';
   addingPin = false;
   $('addPinBtn').textContent = '➕ เพิ่มหมุดตำหนิ (กดแล้วแตะจุดบนรูปองค์ครู)';
   redraw();
@@ -1285,18 +1319,36 @@ function redraw(){
   }
 }
 
-/* ---------- ลากเลื่อน + แตะเพิ่มหมุด ---------- */
+/* ---------- ลากเลื่อน + แตะเพิ่มหมุด + กดค้างเทียบเฉพาะจุด ---------- */
 function bindPan(cv, isMaster){
   let dragging = false, moved = 0, lastX = 0, lastY = 0;
+  let pressTimer = null, longFired = false, startCX = 0, startCY = 0;
+  const LONG_MS = 480, MOVE_TOL = 10;
+
   cv.addEventListener('pointerdown', e => {
     dragging = true; moved = 0; lastX = e.clientX; lastY = e.clientY;
+    startCX = e.clientX; startCY = e.clientY;
+    longFired = false;
     cv.setPointerCapture(e.pointerId);
+    if ((wsMode === 'dual' || wsMode === 'pins')){
+      clearTimeout(pressTimer);
+      pressTimer = setTimeout(() => {
+        if (moved < MOVE_TOL){
+          longFired = true;
+          const rect = cv.getBoundingClientRect();
+          const ox = (startCX - rect.left) / rect.width;
+          const oy = (startCY - rect.top) / rect.height;
+          handleLongPress(isMaster, ox, oy);
+        }
+      }, LONG_MS);
+    }
   });
   cv.addEventListener('pointermove', e => {
     if (!dragging) return;
     const dx = e.clientX - lastX, dy = e.clientY - lastY;
     moved += Math.abs(dx) + Math.abs(dy);
     lastX = e.clientX; lastY = e.clientY;
+    if (moved >= MOVE_TOL) clearTimeout(pressTimer);
     const src = isMaster ? masterCrop : (suspectCrop || masterCrop);
     if (!src) return;
     const rect = cv.getBoundingClientRect();
@@ -1310,6 +1362,8 @@ function bindPan(cv, isMaster){
   });
   cv.addEventListener('pointerup', e => {
     dragging = false;
+    clearTimeout(pressTimer);
+    if (longFired){ longFired = false; return; }   // กดค้างจัดการไปแล้ว ไม่ต้องแตะซ้ำ
     // แตะเบาๆ (ไม่ได้ลาก) บนรูปองค์ครูขณะอยู่ในโหมดเพิ่มหมุด = ปักหมุด
     if (moved < 8 && isMaster && wsMode === 'pins' && masterCrop && curMaster){
       const rect = cv.getBoundingClientRect();
@@ -1348,6 +1402,54 @@ function bindPan(cv, isMaster){
 bindPan($('cvMaster'), true);
 bindPan($('cvSuspect'), false);
 bindPan($('ovCanvas'), false);
+
+/* กดค้าง: ครอปโฟกัสจุดที่แตะจากทั้งสองภาพ + คำนวณ % ความใกล้เคียงเฉพาะจุด */
+function handleLongPress(isMasterSide, ox, oy){
+  if (!masterCrop) return;
+  const srcForSide = isMasterSide ? masterCrop : (suspectCrop || masterCrop);
+  const { sx, sy, sw } = computeSrcRect(srcForSide);
+  const nx = (sx + ox*sw) / srcForSide.width;
+  const ny = (sy + oy*sw) / srcForSide.height;
+  focusOnPoint(nx, ny);
+}
+function cropFocusPatch(src, nx, ny){
+  const FRAC = 0.22;                       // สัดส่วนพื้นที่รอบจุดที่โฟกัส
+  const s = Math.min(src.width, src.height);
+  const size = s * FRAC;
+  let px = nx*src.width - size/2, py = ny*src.height - size/2;
+  px = Math.max(0, Math.min(src.width-size, px));
+  py = Math.max(0, Math.min(src.height-size, py));
+  const out = document.createElement('canvas');
+  out.width = 224; out.height = 224;
+  out.getContext('2d').drawImage(src, px, py, size, size, 0, 0, 224, 224);
+  return out;
+}
+async function focusOnPoint(nx, ny){
+  if (!masterCrop) return;
+  $('focusPanel').style.display = 'block';
+  const mPatch = cropFocusPatch(masterCrop, nx, ny);
+  $('cvFocusMaster').getContext('2d').drawImage(mPatch, 0, 0, 320, 320);
+  if (!suspectCrop){
+    $('cvFocusSuspect').getContext('2d').clearRect(0, 0, 320, 320);
+    $('focusPct').textContent = '–';
+    $('focusPct').style.color = 'var(--muted)';
+    return;
+  }
+  const sPatch = cropFocusPatch(suspectCrop, nx, ny);
+  $('cvFocusSuspect').getContext('2d').drawImage(sPatch, 0, 0, 320, 320);
+  try {
+    await ensureNet();
+    const v1 = await embed(mPatch);
+    const v2 = await embed(sPatch);
+    const c = cosine(v1, v2);
+    const pct = shapeToPct(c);
+    $('focusPct').textContent = isFinite(pct) ? pct + '%' : '–';
+    $('focusPct').style.color = pct >= 70 ? 'var(--high)' : 'var(--low)';
+  } catch(e){
+    $('focusPct').textContent = '–';
+    $('focusPct').style.color = 'var(--muted)';
+  }
+}
 
 $('addPinBtn').addEventListener('click', () => {
   addingPin = !addingPin;
